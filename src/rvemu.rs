@@ -1,4 +1,8 @@
-use std::{cmp::max, cmp::min, process::exit};
+use std::{alloc::alloc, alloc::Layout, cmp::max, cmp::min, mem, process::exit};
+
+const GUEST_MEMORY_OFFSET: u64 = 0x088800000000;
+const STACK_CAP: usize = 256;
+const STR_MAX_PREALLOC: u64 = 1024 * 1024;
 
 macro_rules! fatalf {
     ($($fmt:expr),+) => {
@@ -43,6 +47,223 @@ macro_rules! array_size {
     };
 }
 
+macro_rules! to_host {
+    ($addr:expr) => {
+        addr + GUEST_MEMORY_OFFSET
+    };
+}
+
+macro_rules! to_guest {
+    ($addr:expr) => {
+        addr - GUEST_MEMORY_OFFSET
+    };
+}
+
+enum InsnTypeT {
+    InsnLb,
+    InsnLh,
+    InsnLw,
+    InsnLd,
+    InsnLbu,
+    InsnLhu,
+    InsnLwu,
+    InsnFence,
+    InsnFenceI,
+    InsnAddi,
+    InsnSlli,
+    InsnSlti,
+    InsnSltiu,
+    InsnXori,
+    InsnSrli,
+    InsnSrai,
+    InsnOri,
+    InsnAndi,
+    InsnAuipc,
+    InsnAddiw,
+    InsnSlliw,
+    InsnSrliw,
+    InsnSraiw,
+    InsnSb,
+    InsnSh,
+    InsnSw,
+    InsnSd,
+    InsnAdd,
+    InsnSll,
+    InsnSlt,
+    InsnSltu,
+    InsnXor,
+    InsnSrl,
+    InsnOr,
+    InsnAnd,
+    InsnMul,
+    InsnMulh,
+    InsnMulhsu,
+    InsnMulhu,
+    InsnDiv,
+    InsnDivu,
+    InsnRem,
+    InsnRemu,
+    InsnSub,
+    InsnSra,
+    InsnLui,
+    InsnAddw,
+    InsnSllw,
+    InsnSrlw,
+    InsnMulw,
+    InsnDivw,
+    InsnDivuw,
+    InsnRemw,
+    InsnRemuw,
+    InsnSubw,
+    InsnSraw,
+    InsnBeq,
+    InsnBne,
+    InsnBlt,
+    InsnBge,
+    InsnBltu,
+    InsnBgeu,
+    InsnJalr,
+    InsnJal,
+    InsnEcall,
+    InsnCsrrc,
+    InsnCsrrci,
+    InsnCsrrs,
+    InsnCsrrsi,
+    InsnCsrrw,
+    InsnCsrrwi,
+    InsnFlw,
+    InsnFsw,
+    InsnFmaddS,
+    InsnFmsubS,
+    InsnFnmsubS,
+    InsnFnmaddS,
+    InsnFaddS,
+    InsnFsubS,
+    InsnFmulS,
+    InsnFdivS,
+    InsnFsqrtS,
+    InsnFsgnjS,
+    InsnFsgnjnS,
+    InsnFsgnjxS,
+    InsnFminS,
+    InsnFmaxS,
+    InsnFcvtWS,
+    InsnFcvtWuS,
+    InsnFmvXW,
+    InsnFeqS,
+    InsnFltS,
+    InsnFleS,
+    InsnFclassS,
+    InsnFcvtSW,
+    InsnFcvtSWu,
+    InsnFmvWX,
+    InsnFcvtLS,
+    InsnFcvtLuS,
+    InsnFcvtSL,
+    InsnFcvtSLu,
+    InsnFld,
+    InsnFsd,
+    InsnFmaddD,
+    InsnFmsubD,
+    InsnFnmsubD,
+    InsnFnmaddD,
+    InsnFaddD,
+    InsnFsubD,
+    InsnFmulD,
+    InsnFdivD,
+    InsnFsqrtD,
+    InsnFsgnjD,
+    InsnFsgnjnD,
+    InsnFsgnjxD,
+    InsnFminD,
+    InsnFmaxD,
+    InsnFcvtSD,
+    InsnFcvtDS,
+    InsnFeqD,
+    InsnFltD,
+    InsnFleD,
+    InsnFclassD,
+    InsnFcvtWD,
+    InsnFcvtWuD,
+    InsnFcvtDW,
+    InsnFcvtDWu,
+    InsnFcvtLD,
+    InsnFcvtLuD,
+    InsnFmvXD,
+    InsnFcvtDL,
+    InsnFcvtDLu,
+    InsnFmvDX,
+    NumInsns,
+}
+
+struct InsnT {
+    rd: i8,
+    rs1: i8,
+    rs2: i8,
+    rs3: i8,
+    imm: i32,
+    csr: i16,
+    ins: InsnTypeT,
+    rvc: bool,
+    cont: bool,
+}
+
+struct StackT {
+    top: i64,
+    elems: [u64; STACK_CAP],
+}
+#[derive(Copy, Clone)]
+struct StrHdrT {
+    len: u64,
+    alloc: u64,
+    buf: StrT,
+}
+
+macro_rules! str_hdr {
+    ($s:expr) => {
+        (s - mem::size_of::<StrHdrT>()) as StrHdrT
+    };
+}
+
+type StrT = *mut char;
+
+macro_rules! declare_static_str {
+    ($name:expr) => {
+        $name = str_new();
+    };
+}
+
+fn str_new() -> StrT {
+    let layout = Layout::new::<[StrHdrT; 1]>();
+    unsafe {
+        let ptr = alloc(layout);
+        let str_hdr_t = ptr as *mut StrHdrT;
+        (*str_hdr_t).buf as *mut char
+    }
+}
+
+fn str_len(str_t: StrT) -> u64 {
+    (unsafe { *(str_t as *mut StrHdrT) }).len
+}
+
+struct MmuT {
+    entry: u64,
+    host_alloc: u64,
+    alloc: u64,
+    base: u64,
+}
+
+// inline void mmu_write(u64 addr, u8 *data, size_t len) {
+//     memcpy((void *)TO_HOST(addr), (void *)data, len);
+// }
+
+fn mmu_write(mut addr: u64, data: *const u8, len: usize) {
+    let ptr64 = data as *const u64;
+    addr = unsafe {
+        *ptr64
+    }
+}
+
 #[test]
 fn test_fatal() {
     fatal!("test");
@@ -81,9 +302,9 @@ fn test_max() {
 }
 
 #[test]
-fn test_arr_size(){
-    let arr = [1,2,3];
-    let vec = vec![1,2,3];
+fn test_arr_size() {
+    let arr = [1, 2, 3];
+    let vec = vec![1, 2, 3];
     let n = array_size!(arr);
     println!("{:?}", n);
     let n = array_size!(vec);

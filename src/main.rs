@@ -1,10 +1,11 @@
-
 mod elfdef;
 mod rvemu;
 
 fn main() {
-    let arr = [1,2,3];
-    let v = vec![1,2,3];
-    println!("{:?}", arr.len());
-    println!("{:?}", v.len())
+    let d8: [u8;8] = [0,0,0,0,0,0,0,1];
+    println!("{:?}", d8);
+    let ptr8 = &d8 as *const u8;
+    let ptr64 = ptr8 as *const u64;
+    let dd = unsafe { *ptr64 };
+    println!("{:?}", dd);
 }
