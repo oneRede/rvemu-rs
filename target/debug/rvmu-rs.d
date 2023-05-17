@@ -1,1 +1,1 @@
-/home/rede/software/rvmu-rs/target/debug/rvmu-rs: /home/rede/software/rvmu-rs/src/elfdef.rs /home/rede/software/rvmu-rs/src/main.rs /home/rede/software/rvmu-rs/src/rvemu.rs
+/home/rede/git/rvemu/target/debug/rvmu-rs: /home/rede/git/rvemu/src/elfdef.rs /home/rede/git/rvemu/src/main.rs /home/rede/git/rvemu/src/rvemu.rs
