@@ -1,5 +1,7 @@
 use std::{alloc::alloc, alloc::Layout, cmp::max, cmp::min, mem, process::exit};
 
+use crate::reg::{FpRegT, FpRegTypeT, GpRegTypeT};
+
 const GUEST_MEMORY_OFFSET: u64 = 0x088800000000;
 const STACK_CAP: usize = 256;
 const STR_MAX_PREALLOC: u64 = 1024 * 1024;
@@ -259,10 +261,69 @@ struct MmuT {
 
 fn mmu_write(mut addr: u64, data: *const u8, len: usize) {
     let ptr64 = data as *const u64;
-    addr = unsafe {
-        *ptr64
-    }
+    addr = unsafe { *ptr64 }
 }
+
+const CACHE_ENTRY_SIZE: usize = 64 * 1024;
+const CACHE_SIZE: usize = 64 * 1024 * 1024;
+
+struct CacheItemT {
+    pc: u64,
+    hot: u64,
+    offset: u64,
+}
+
+struct CacheT {
+    jitcode: *const u8,
+    offset: u64,
+    table: [CacheItemT; CACHE_ENTRY_SIZE],
+}
+
+enum ExitReasonT {
+    None,
+    DirectBranch,
+    IndirectBranch,
+    Interp,
+    Ecall,
+}
+
+enum CsrT {
+    Fflags = 0x001,
+    Frm = 0x002,
+    Fcsr = 0x003,
+}
+
+struct StateT {
+    exit_reason: ExitReasonT,
+    reenter_pc: u64,
+    gp_regs: [u64; GpRegTypeT::NumGpRegs as usize],
+    fp_regs: [FpRegT; FpRegTypeT::NumFpRegs as usize],
+    pc: u64,
+}
+
+struct MachineT {
+    state: StateT,
+    mmu: MmuT,
+    cache: *const CacheT,
+}
+
+#[inline]
+fn machine_get_gp_reg(m: *const MachineT, reg: i32) -> u64 {
+    assert!(reg >= 0 && reg <= GpRegTypeT::NumGpRegs as i32);
+    return unsafe { (*m).state.gp_regs[reg as usize] };
+}
+
+#[inline]
+fn machine_set_gp_reg(m: *mut MachineT, reg: i32, data:u64) {
+    assert!(reg >= 0 && reg <= GpRegTypeT::NumGpRegs as i32);
+    unsafe { (*m).state.gp_regs[reg as usize] = data};
+}
+
+const SET_SIZE: usize = 32 * 1024;
+
+struct SetT{
+    table: [u64;SET_SIZE],
+} 
 
 #[test]
 fn test_fatal() {

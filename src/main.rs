@@ -1,6 +1,6 @@
 mod elfdef;
 mod rvemu;
-
+mod reg;
 fn main() {
     let d8: [u8;8] = [0,0,0,0,0,0,0,1];
     println!("{:?}", d8);
