@@ -12,7 +12,7 @@ fn main() {
     assert_eq!(args.len()> 1, true);
 
     let mut machine = Machine::new();
-    machine_load_program(&mut machine, &args[0]);
+    machine_load_program(&mut machine, &args[1]);
 
     println!("entry: {}\n", machine.mmu.entry)
 }

@@ -1,5 +1,5 @@
 pub const EI_NIDENT: usize = 16;
-pub const ELFMAG: &str = "\\177ELF";
+pub const ELFMAG: &[u8; 4] = b"\x7fELF";
 
 pub const EM_RISCV: u16 = 243;
 
@@ -32,13 +32,13 @@ pub struct Ehdr {
     pub e_shstrndx: u16,
 }
 
-pub struct Phdr{
-    pub p_type:u32,
-    pub p_flags:u32,
-    pub p_offset:u64,
-    pub p_vaddr:u64,
-    pub p_paddr:u64,
-    pub p_filesz:u64,
-    pub p_memsz:u64,
-    pub p_align:u64,
+pub struct Phdr {
+    pub p_type: u32,
+    pub p_flags: u32,
+    pub p_offset: u64,
+    pub p_vaddr: u64,
+    pub p_paddr: u64,
+    pub p_filesz: u64,
+    pub p_memsz: u64,
+    pub p_align: u64,
 }
