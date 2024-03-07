@@ -14,5 +14,5 @@ fn main() {
     let mut machine = Machine::new();
     machine_load_program(&mut machine, &args[1]);
 
-    println!("entry: {}\n", machine.mmu.entry)
+    println!("entry: {:x}\n", machine.mmu.entry)
 }
