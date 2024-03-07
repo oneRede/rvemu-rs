@@ -15,8 +15,7 @@ pub fn mmu_load_elf(mmu: &mut Mmu, fd: i32) {
         fatal("file too small");
     }
 
-    let ehdr: Ehdr = unsafe { std::ptr::read(buf.as_ptr() as *const _) };
-
+    let ehdr: Ehdr = unsafe { std::ptr::read(buf.as_ptr() as *const Ehdr) };
     let elf_h = unsafe { *(buf[..4].as_ptr() as *const u32) };
     let elf_mag = unsafe { *((ELFMAG).as_ptr() as *const u32) };
 

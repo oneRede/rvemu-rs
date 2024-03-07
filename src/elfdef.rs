@@ -15,6 +15,7 @@ pub const PF_X: u64 = 0x1;
 pub const PF_W: u64 = 0x2;
 pub const PF_R: u64 = 0x4;
 
+#[repr(C)]
 pub struct Ehdr {
     pub e_ident: [u8; EI_NIDENT],
     pub e_type: u16,
@@ -32,6 +33,7 @@ pub struct Ehdr {
     pub e_shstrndx: u16,
 }
 
+#[repr(C)]
 pub struct Phdr {
     pub p_type: u32,
     pub p_flags: u32,
