@@ -6,7 +6,7 @@ use std::{
     ptr, slice,
 };
 
-use libc::mmap;
+use libc::{mmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
 
 use crate::{
     elfdef::{
@@ -31,7 +31,7 @@ pub fn load_phdr(phdr: &mut Phdr, ehdr: &Ehdr, i: i64, file: &mut File) {
     }
 }
 
-pub fn flags_to_mmap_prot(flags: u32) -> i32 {
+pub fn flags_to_mmap_prot(flags: i32) -> i32 {
     let r = if (flags & PF_R) != 0 { PROT_READ } else { 0 };
     let w = if (flags & PF_W) != 0 { PROT_WRITE } else { 0 };
     let x = if (flags & PF_X) != 0 { PROT_EXEC } else { 0 };
@@ -45,7 +45,7 @@ pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {
     let aligned_vaddr: u64 = round_down!(vaddr, page_size);
     let filesz = phdr.p_memsz + vaddr - aligned_vaddr;
     let memsz = phdr.p_memsz + vaddr - aligned_vaddr;
-    let prot = flags_to_mmap_prot(phdr.p_flags);
+    let prot = flags_to_mmap_prot(phdr.p_flags as i32);
 
     let ptr_align: *mut u8 = ptr::null_mut();
     let ptr_align = unsafe { ptr_align.add(aligned_vaddr as usize) };
@@ -54,12 +54,12 @@ pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {
             ptr_align as *mut c_void,
             filesz.try_into().unwrap(),
             prot,
-            0,
+            MAP_PRIVATE | MAP_FIXED,
             fd,
             round_down!(offset, page_size) as i64,
         )
     };
-    assert_eq!(aligned_vaddr, ptr as u64);
+    assert_eq!(ptr as u64, aligned_vaddr);
 
     let remianing_bss = round_up!(memsz, page_size) - round_up!(filesz, page_size);
     if remianing_bss > 0 {
@@ -71,7 +71,7 @@ pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {
                 ptr_align as *mut c_void,
                 remianing_bss as usize,
                 prot,
-                0,
+                MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
                 -1,
                 0,
             )

@@ -11,9 +11,9 @@ pub const ELFCLASSNUM: u64 = 3;
 
 pub const PT_LOAD: u32 = 1;
 
-pub const PF_X: u32 = 0x1;
-pub const PF_W: u32 = 0x2;
-pub const PF_R: u32 = 0x4;
+pub const PF_X: i32 = 0x1;
+pub const PF_W: i32 = 0x2;
+pub const PF_R: i32 = 0x4;
 
 pub const PROT_NONE: u32 = 0x00;
 pub const PROT_READ: u32 = 0x01;
