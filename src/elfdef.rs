@@ -9,11 +9,67 @@ pub const ELFCLASS32: u64 = 1;
 pub const ELFCLASS64: u8 = 2;
 pub const ELFCLASSNUM: u64 = 3;
 
-pub const PT_LOAD: u64 = 1;
+pub const PT_LOAD: u32 = 1;
 
-pub const PF_X: u64 = 0x1;
-pub const PF_W: u64 = 0x2;
-pub const PF_R: u64 = 0x4;
+pub const PF_X: u32 = 0x1;
+pub const PF_W: u32 = 0x2;
+pub const PF_R: u32 = 0x4;
+
+pub const PROT_NONE: u32 = 0x00;
+pub const PROT_READ: u32 = 0x01;
+pub const PROT_WRITE: u32 = 0x02;
+pub const PROT_EXEC: u32 = 0x04;
+
+pub const GUEST_MEMORY_OFFSET: u64 = 0x088800000000u64;
+
+#[macro_export]
+macro_rules! round_down {
+    ($x:expr, $k:expr) => {
+        (($x as i64) & -($k as i64)) as u64
+    };
+}
+
+#[macro_export]
+macro_rules! round_up {
+    ($x:expr, $k:expr) => {
+        ((($x as i64) + ($k as i64) - 1) & -($k as i64)) as u64
+    };
+}
+
+#[macro_export]
+macro_rules! min {
+    ($x:expr, $y:expr) => {
+        if $y > $x {
+            $x
+        } else {
+            $y
+        }
+    };
+}
+#[macro_export]
+macro_rules! max {
+    ($x:expr, $y:expr) => {
+        if $y < $x {
+            $x
+        } else {
+            $y
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! to_host {
+    ($addr:expr) => {
+        $addr + 0x088800000000u64
+    };
+}
+
+#[macro_export]
+macro_rules! to_guest {
+    ($addr:expr) => {
+        $addr - 0x088800000000u64
+    };
+}
 
 #[repr(C)]
 pub struct Ehdr {
@@ -34,6 +90,8 @@ pub struct Ehdr {
 }
 
 #[repr(C)]
+#[derive(Debug)]
+#[derive(Clone, Copy)]
 pub struct Phdr {
     pub p_type: u32,
     pub p_flags: u32,
@@ -43,4 +101,20 @@ pub struct Phdr {
     pub p_filesz: u64,
     pub p_memsz: u64,
     pub p_align: u64,
+}
+
+
+impl Phdr {
+    pub fn new() -> Phdr {
+        Phdr {
+            p_type: 0,
+            p_flags: 0,
+            p_offset: 0,
+            p_vaddr: 0,
+            p_paddr: 0,
+            p_filesz: 0,
+            p_memsz: 0,
+            p_align: 0,
+        }
+    }
 }
