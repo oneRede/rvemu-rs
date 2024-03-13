@@ -31,6 +31,7 @@ impl Insn {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Mmu {
     pub entry: u64,
     pub host_alloc: u64,
@@ -50,7 +51,8 @@ impl Mmu {
 }
 
 #[derive(Clone, Copy)]
-pub enum ExitReasonT {
+#[derive(PartialEq)]
+pub enum ExitReason {
     None,
     DirectBranch,
     IndirectBranch,
@@ -59,7 +61,7 @@ pub enum ExitReasonT {
 
 #[derive(Clone, Copy)]
 pub struct State {
-    pub exit_reason: ExitReasonT,
+    pub exit_reason: ExitReason,
     pub gp_regs: [u64; 32],
     pub pc: u64,
 }
@@ -67,13 +69,14 @@ pub struct State {
 impl State {
     pub fn new() -> State {
         State {
-            exit_reason: ExitReasonT::None,
+            exit_reason: ExitReason::None,
             gp_regs: [0; 32],
             pc: 0,
         }
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Machine {
     pub state: State,
     pub mmu: Mmu,

@@ -1,6 +1,6 @@
 use std::env;
 
-use crate::{machine::machine_load_program, rvemu::Machine};
+use crate::{machine::{machine_load_program, machine_step}, rvemu::{ExitReason, Machine}};
 
 pub mod elfdef;
 pub mod machine;
@@ -17,5 +17,8 @@ fn main() {
     let mut machine = Machine::new();
     machine_load_program(&mut machine, &args[1]);
 
-    println!("entry: {:x}\n", machine.mmu.host_alloc);
+    loop  {
+        let reason = machine_step(machine);
+        assert!(reason == ExitReason::Ecall);
+    }
 }
