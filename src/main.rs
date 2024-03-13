@@ -6,6 +6,9 @@ pub mod elfdef;
 pub mod machine;
 pub mod mmu;
 pub mod rvemu;
+pub mod reg;
+pub mod interp;
+pub mod decode;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

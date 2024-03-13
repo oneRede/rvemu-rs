@@ -2,7 +2,7 @@ use std::{fs::OpenOptions, os::fd::AsRawFd};
 
 use crate::{
     mmu::mmu_load_elf,
-    rvemu::{fatal, Machine},
+    rvemu::Machine,
 };
 
 pub fn machine_load_program(m: &mut Machine, prog: &str) {
@@ -13,10 +13,6 @@ pub fn machine_load_program(m: &mut Machine, prog: &str) {
         .expect("open file failed!!");
     
     let fd = file.as_raw_fd();
-
-    if fd == -1 {
-        fatal("wrong fd num!!")
-    }
 
     mmu_load_elf(&mut m.mmu, fd);
 

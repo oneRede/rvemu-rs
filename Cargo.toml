@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2.153"
+page_size = "0.6.0"

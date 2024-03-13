@@ -39,7 +39,7 @@ pub fn flags_to_mmap_prot(flags: i32) -> i32 {
 }
 
 pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {
-    let page_size = 4096;
+    let page_size = page_size::get();
     let offset = phdr.p_offset;
     let vaddr: u64 = to_host!(phdr.p_vaddr);
     let aligned_vaddr: u64 = round_down!(vaddr, page_size);
