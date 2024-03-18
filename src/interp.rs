@@ -1,3 +1,5 @@
+use std::ptr;
+
 use crate::{
     decode::insn_decode,
     reg::GpRegTypeT,
@@ -10,8 +12,9 @@ pub static FUNCS: Vec<fn(State, Insn)> = vec![];
 pub fn exec_block_interp(mut state: State) {
     let insn: Insn = Insn::new();
     loop {
-        let data = to_host!(state.pc) as u32;
-        insn_decode(insn, data);
+        let data: *const u8 = ptr::null();
+        let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
+        insn_decode(insn, *(unsafe { data.as_ref().unwrap() }));
 
         FUNCS.get(insn.i_type as usize).unwrap()(state, insn);
         state.gp_regs[GpRegTypeT::Zero as usize] = 0;

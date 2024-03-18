@@ -8,13 +8,13 @@ use std::{
 
 use libc::{mmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
 
-use crate::{
+use crate::{fatal, 
     elfdef::{
         Ehdr, Phdr, EI_CLASS, ELFCLASS64, ELFMAG, EM_RISCV, PF_R, PF_W, PF_X, PROT_EXEC, PROT_READ,
         PROT_WRITE, PT_LOAD,
     },
     max, round_down, round_up,
-    rvemu::{fatal, Mmu},
+    rvemu::Mmu,
     to_guest, to_host,
 };
 
@@ -22,12 +22,12 @@ pub fn load_phdr(phdr: &mut Phdr, ehdr: &Ehdr, i: i64, file: &mut File) {
     let size_phdr = size_of::<Phdr>();
     let seek = SeekFrom::Start(ehdr.e_phoff + ((ehdr.e_phentsize as i64) * i) as u64);
     if let Err(_) = file.seek(seek) {
-        fatal("seek file failed");
+        fatal!("seek file failed");
     }
 
     let mut buf = unsafe { slice::from_raw_parts_mut(phdr as *mut Phdr as *mut u8, size_phdr) };
     if let Err(_) = file.read(&mut buf) {
-        fatal("file too small");
+        fatal!("file too small");
     }
 }
 
@@ -91,7 +91,7 @@ pub fn mmu_load_elf(mut mmu: &mut Mmu, fd: i32) {
 
     let rs = file.read(&mut buf[..]);
     if rs.unwrap() != SIZE_EHDR {
-        fatal("file too small");
+        fatal!("file too small");
     }
 
     let ehdr: Ehdr = unsafe { std::ptr::read(buf.as_ptr() as *const Ehdr) };
@@ -99,11 +99,11 @@ pub fn mmu_load_elf(mut mmu: &mut Mmu, fd: i32) {
     let elf_mag = unsafe { *((ELFMAG).as_ptr() as *const u32) };
 
     if elf_h != elf_mag {
-        fatal("bad elf file")
+        fatal!("bad elf file")
     }
 
     if ehdr.e_machine != EM_RISCV || ehdr.e_ident[EI_CLASS] != ELFCLASS64 {
-        fatal("only riscv64 elf file is supported");
+        fatal!("only riscv64 elf file is supported");
     }
 
     mmu.entry = ehdr.e_entry;

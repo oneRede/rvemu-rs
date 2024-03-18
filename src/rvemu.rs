@@ -1,5 +1,3 @@
-use std::process::exit;
-
 #[derive(Clone, Copy)]
 pub enum InsnType {
     InsnAddi,
@@ -50,8 +48,7 @@ impl Mmu {
     }
 }
 
-#[derive(Clone, Copy)]
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum ExitReason {
     None,
     DirectBranch,
@@ -91,7 +88,9 @@ impl Machine {
     }
 }
 
-pub fn fatal(msg: &str) {
-    println!("fatal: {}:{} {}", file!(), line!(), msg);
-    exit(1)
+#[macro_export]
+macro_rules! fatal {
+    ($msg: expr) => {
+        println!("fatal: {}:{} {}", file!(), line!(), $msg)
+    };
 }

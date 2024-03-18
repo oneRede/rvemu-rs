@@ -19,7 +19,6 @@ pub fn machine_step(m :Machine) -> ExitReason {
 
 }
 
-
 pub fn machine_load_program(m: &mut Machine, prog: &str) {
     let file = OpenOptions::new()
         .read(true)
