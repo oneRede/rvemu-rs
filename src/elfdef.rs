@@ -20,8 +20,6 @@ pub const PROT_READ: u32 = 0x01;
 pub const PROT_WRITE: u32 = 0x02;
 pub const PROT_EXEC: u32 = 0x04;
 
-pub const GUEST_MEMORY_OFFSET: u64 = 0x088800000000u64;
-
 #[macro_export]
 macro_rules! round_down {
     ($x:expr, $k:expr) => {
@@ -90,8 +88,7 @@ pub struct Ehdr {
 }
 
 #[repr(C)]
-#[derive(Debug)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Phdr {
     pub p_type: u32,
     pub p_flags: u32,
@@ -102,7 +99,6 @@ pub struct Phdr {
     pub p_memsz: u64,
     pub p_align: u64,
 }
-
 
 impl Phdr {
     pub fn new() -> Phdr {

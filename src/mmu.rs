@@ -8,12 +8,12 @@ use std::{
 
 use libc::{mmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
 
-use crate::{fatal, 
+use crate::{
     elfdef::{
         Ehdr, Phdr, EI_CLASS, ELFCLASS64, ELFMAG, EM_RISCV, PF_R, PF_W, PF_X, PROT_EXEC, PROT_READ,
         PROT_WRITE, PT_LOAD,
     },
-    max, round_down, round_up,
+    fatal, max, round_down, round_up,
     rvemu::Mmu,
     to_guest, to_host,
 };
