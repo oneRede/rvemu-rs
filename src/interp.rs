@@ -7,7 +7,27 @@ use crate::{
     to_host,
 };
 
-pub static FUNCS: Vec<fn(State, Insn)> = vec![];
+pub fn func_empty(_state: State, _insn: Insn) {}
+
+pub static FUNCS: [fn(State, Insn); 133] = [
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty, func_empty,
+    func_empty, func_empty, func_empty, func_empty, func_empty,
+];
 
 pub fn exec_block_interp(mut state: State) {
     let insn: Insn = Insn::new();
