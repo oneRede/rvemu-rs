@@ -467,11 +467,11 @@ pub fn insn_ciwtype_read(data: u16) -> Insn {
     return insn;
 }
 
-pub fn insn_decode(_insn: Insn, data: u32) {
+pub fn insn_decode(_insn: &mut Insn, data: u32) {
     let quadrant = quadrant!(data);
 
     match quadrant {
-        0x0 => fatal!("unimplemented"),
+        0x0 => {fatal!("unimplemented")},
         0x1 => fatal!("unimplemented"),
         0x2 => fatal!("unimplemented"),
         0x3 => fatal!("unimplemented"),
