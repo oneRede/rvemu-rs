@@ -220,7 +220,6 @@ macro_rules! rc2 {
 #[inline]
 pub fn insn_catype_read(data: u16) -> Insn {
     let mut insn = Insn::new();
-
     insn.rd = rp1!(data) as i8 + 8;
     insn.rs2 = rp2!(data) as i8 + 8;
     insn.rvc = true;
@@ -231,7 +230,6 @@ pub fn insn_catype_read(data: u16) -> Insn {
 #[inline]
 pub fn insn_crtype_read(data: u16) -> Insn {
     let mut insn = Insn::new();
-
     insn.rd = rc1!(data) as i8;
     insn.rs2 = rc2!(data) as i8;
     insn.rvc = true;
@@ -247,7 +245,6 @@ pub fn insn_citype_read(data: u16) -> Insn {
     imm = (imm << 26) >> 26;
 
     let mut insn = Insn::new();
-
     insn.imm = imm as i32;
     insn.rd = rc1!(data) as i8;
     insn.rvc = true;
@@ -260,11 +257,9 @@ pub fn insn_citype_read2(data: u16) -> Insn {
     let imm86 = ((data >> 2) & 0x7) as u32;
     let imm43 = ((data >> 5) & 0x3) as u32;
     let imm5 = ((data >> 12) & 0x1) as u32;
-
     let imm = ((imm86 << 6) | (imm43 << 3) | (imm5 << 5)) as i32;
 
     let mut insn = Insn::new();
-
     insn.imm = imm;
     insn.rd = rc1!(data) as i8;
     insn.rvc = true;
@@ -279,12 +274,10 @@ pub fn insn_citype_read3(data: u16) -> Insn {
     let imm6 = ((data >> 5) & 0x1) as u32;
     let imm4 = ((data >> 6) & 0x1) as u32;
     let imm9 = ((data >> 12) & 0x1) as u32;
-
     let mut imm = ((imm5 << 5) | (imm87 << 7) | (imm6 << 6) | (imm4 << 4) | (imm9 << 9)) as i32;
     imm = (imm << 22) >> 22;
 
     let mut insn = Insn::new();
-
     insn.imm = imm;
     insn.rd = rc1!(data) as i8;
     insn.rvc = true;
@@ -297,11 +290,9 @@ pub fn insn_citype_read4(data: u16) -> Insn {
     let imm5 = ((data >> 12) & 0x1) as u32;
     let imm42 = ((data >> 4) & 0x7) as u32;
     let imm76 = ((data >> 2) & 0x3) as u32;
-
     let imm = ((imm5 << 5) | (imm42 << 2) | (imm76 << 6)) as i32;
 
     let mut insn = Insn::new();
-
     insn.imm = imm;
     insn.rd = rc1!(data) as i8;
     insn.rvc = true;
@@ -310,15 +301,13 @@ pub fn insn_citype_read4(data: u16) -> Insn {
 }
 
 #[inline]
-pub fn insn_citype_read5(data:u16) -> Insn {
-    let imm1612 = ((data >>  2) & 0x1f) as u32;
-    let imm17   = ((data >> 12) & 0x1) as u32;
-
+pub fn insn_citype_read5(data: u16) -> Insn {
+    let imm1612 = ((data >> 2) & 0x1f) as u32;
+    let imm17 = ((data >> 12) & 0x1) as u32;
     let mut imm = ((imm1612 << 12) | (imm17 << 17)) as i32;
     imm = (imm << 14) >> 14;
-    
-    let mut insn = Insn::new();
 
+    let mut insn = Insn::new();
     insn.imm = imm;
     insn.rd = rc1!(data) as i8;
     insn.rvc = true;
@@ -326,20 +315,153 @@ pub fn insn_citype_read5(data:u16) -> Insn {
     return insn;
 }
 
-pub fn insn_cbtype_read(data:u16) -> Insn {
-    let imm5  = ((data >>  2) & 0x1) as u32;
-    let imm21 = ((data >>  3) & 0x3) as u32;
-    let imm76 = ((data >>  5) & 0x3) as u32;
+#[inline]
+pub fn insn_cbtype_read(data: u16) -> Insn {
+    let imm5 = ((data >> 2) & 0x1) as u32;
+    let imm21 = ((data >> 3) & 0x3) as u32;
+    let imm76 = ((data >> 5) & 0x3) as u32;
     let imm43 = ((data >> 10) & 0x3) as u32;
-    let imm8  = ((data >> 12) & 0x1) as u32;
-
+    let imm8 = ((data >> 12) & 0x1) as u32;
     let mut imm = ((imm8 << 8) | (imm76 << 6) | (imm5 << 5) | (imm43 << 3) | (imm21 << 1)) as i32;
     imm = (imm << 23) >> 23;
 
     let mut insn = Insn::new();
-
     insn.imm = imm;
     insn.rs1 = rp1!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_cbtype_read2(data: u16) -> Insn {
+    let imm40: u32 = (data as u32 >> 2) & 0x1f;
+    let imm5: u32 = (data as u32 >> 12) & 0x1;
+    let mut imm: i32 = ((imm5 as i32) << 5) | imm40 as i32;
+    imm = (imm << 26) >> 26;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rd = rp1!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_cstype_read(data: u16) -> Insn {
+    let imm76: u32 = (data as u32 >> 5) & 0x3;
+    let imm53: u32 = (data as u32 >> 10) & 0x7;
+    let imm: i32 = ((imm76 << 6) | (imm53 << 3)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rs1 = rp1!(data) as i8 + 8;
+    insn.rs2 = rp2!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_cstype_read2(data: u16) -> Insn {
+    let imm6: u32 = ((data as u32) >> 5) & 0x1;
+    let imm2: u32 = ((data as u32) >> 6) & 0x1;
+    let imm53: u32 = ((data as u32) >> 10) & 0x7;
+    let imm: i32 = ((imm6 << 6) | (imm2 << 2) | (imm53 << 3)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rs1 = rp1!(data) as i8 + 8;
+    insn.rs2 = rp2!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_cjtype_read(data: u16) -> Insn {
+    let imm5: u32 = ((data as u32) >> 2) & 0x1;
+    let imm31: u32 = ((data as u32) >> 3) & 0x7;
+    let imm7: u32 = ((data as u32) >> 6) & 0x1;
+    let imm6: u32 = ((data as u32) >> 7) & 0x1;
+    let imm10: u32 = ((data as u32) >> 8) & 0x1;
+    let imm98: u32 = ((data as u32) >> 9) & 0x3;
+    let imm4: u32 = ((data as u32) >> 11) & 0x1;
+    let imm11: u32 = ((data as u32) >> 12) & 0x1;
+    let mut imm = ((imm5 << 5)
+        | (imm31 << 1)
+        | (imm7 << 7)
+        | (imm6 << 6)
+        | (imm10 << 10)
+        | (imm98 << 8)
+        | (imm4 << 4)
+        | (imm11 << 11)) as i32;
+    imm = (imm << 20) >> 20;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_cltype_read(data: u16) -> Insn {
+    let imm6: u32 = ((data as u32) >> 5) & 0x1;
+    let imm2: u32 = ((data as u32) >> 6) & 0x1;
+    let imm53: u32 = ((data as u32) >> 10) & 0x7;
+    let imm: i32 = ((imm6 << 6) | (imm2 << 2) | (imm53 << 3)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rs1 = rp1!(data) as i8 + 8;
+    insn.rd = rp2!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_cltype_read2(data: u16) -> Insn {
+    let imm76: u32 = ((data as u32) >> 5) & 0x3;
+    let imm53: u32 = ((data as u32) >> 10) & 0x7;
+    let imm = ((imm76 << 6) | (imm53 << 3)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rs1 = rp1!(data) as i8 + 8;
+    insn.rd = rp2!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_csstype_read(data: u16) -> Insn {
+    let imm86: u32 = ((data as u32) >> 7) & 0x7;
+    let imm53: u32 = ((data as u32) >> 10) & 0x7;
+    let imm = ((imm86 << 6) | (imm53 << 3)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rs2 = rc2!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
+pub fn insn_ciwtype_read(data: u16) -> Insn {
+    let imm3: u32 = ((data as u32) >> 5) & 0x1;
+    let imm2: u32 = ((data as u32) >> 6) & 0x1;
+    let imm96: u32 = ((data as u32) >> 7) & 0xf;
+    let imm54: u32 = ((data as u32) >> 11) & 0x3;
+    let imm = ((imm3 << 3) | (imm2 << 2) | (imm96 << 6) | (imm54 << 4)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rd = rp2!(data) as i8 + 8;
     insn.rvc = true;
 
     return insn;
