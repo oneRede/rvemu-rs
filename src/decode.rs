@@ -1,4 +1,8 @@
-use crate::{fatal, rvemu::Insn};
+use crate::{
+    fatal,
+    reg::GpRegTypeT,
+    rvemu::{Insn, InsnType},
+};
 
 #[macro_export]
 macro_rules! quadrant {
@@ -46,6 +50,13 @@ macro_rules! rs3 {
 macro_rules! func_t2 {
     ($data:ident) => {
         (($data >> 25) & 0x3)
+    };
+}
+
+#[macro_export]
+macro_rules! func_t3 {
+    ($data:ident) => {
+        (($data >> 12) & 0x7)
     };
 }
 
@@ -452,6 +463,20 @@ pub fn insn_csstype_read(data: u16) -> Insn {
 }
 
 #[inline]
+pub fn insn_csstype_read2(data: u16) -> Insn {
+    let imm76: u32 = ((data as u32) >> 7) & 0x3;
+    let imm52: u32 = ((data as u32) >> 10) & 0x7;
+    let imm = ((imm76 << 6) | (imm52 << 2)) as i32;
+
+    let mut insn = Insn::new();
+    insn.imm = imm;
+    insn.rs2 = rc2!(data) as i8 + 8;
+    insn.rvc = true;
+
+    return insn;
+}
+
+#[inline]
 pub fn insn_ciwtype_read(data: u16) -> Insn {
     let imm3: u32 = ((data as u32) >> 5) & 0x1;
     let imm2: u32 = ((data as u32) >> 6) & 0x1;
@@ -467,14 +492,493 @@ pub fn insn_ciwtype_read(data: u16) -> Insn {
     return insn;
 }
 
-pub fn insn_decode(_insn: &mut Insn, data: u32) {
+pub fn insn_decode(insn: &mut Insn, data: u32) {
     let quadrant = quadrant!(data);
 
     match quadrant {
-        0x0 => {fatal!("unimplemented")},
-        0x1 => fatal!("unimplemented"),
-        0x2 => fatal!("unimplemented"),
-        0x3 => fatal!("unimplemented"),
+        0x0 => {
+            let copcode = cop_code!(data);
+            match copcode {
+                0x0 => {
+                    *insn = insn_citype_read(data as u16);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnAddi;
+                    assert!(insn.imm != 0);
+                    return;
+                }
+                0x1 => {
+                    *insn = insn_cltype_read2(data as u16);
+                    insn.i_type = InsnType::InsnFld;
+                    return;
+                }
+                0x2 => {
+                    *insn = insn_cltype_read(data as u16);
+                    insn.i_type = InsnType::InsnLw;
+                    return;
+                }
+                0x3 => {
+                    *insn = insn_cltype_read2(data as u16);
+                    insn.i_type = InsnType::InsnLd;
+                    return;
+                }
+                0x5 => {
+                    *insn = insn_cstype_read(data as u16);
+                    insn.i_type = InsnType::InsnFsd;
+                    return;
+                }
+                0x6 => {
+                    *insn = insn_cstype_read2(data as u16);
+                    insn.i_type = InsnType::InsnSw;
+                    return;
+                }
+                0x7 => {
+                    *insn = insn_cstype_read(data as u16);
+                    insn.i_type = InsnType::InsnSd;
+                    return;
+                }
+                _ => {
+                    println!("data: {}", data);
+                    fatal!("unimplemented");
+                }
+            }
+        }
+        0x1 => {
+            let copcode = cop_code!(data);
+            match copcode {
+                0x0 => {
+                    *insn = insn_citype_read(data as u16);
+                    insn.rs1 = insn.rd;
+                    insn.i_type = InsnType::InsnAddi;
+                    return;
+                }
+                0x1 => {
+                    *insn = insn_citype_read(data as u16);
+                    assert!(insn.rd != 0);
+                    insn.rs1 = insn.rd;
+                    insn.i_type = InsnType::InsnAddiw;
+                    return;
+                }
+                0x2 => {
+                    *insn = insn_citype_read(data as u16);
+                    insn.rs1 = GpRegTypeT::Zero as i8;
+                    insn.i_type = InsnType::InsnAddi;
+                    return;
+                }
+                0x3 => {
+                    let rd = rc1!(data);
+                    if rd == 2 {
+                        *insn = insn_citype_read3(data as u16);
+                        assert!(insn.imm != 0);
+                        insn.rs1 = insn.rd;
+                        insn.i_type = InsnType::InsnAddi;
+                        return;
+                    } else {
+                        *insn = insn_citype_read5(data as u16);
+                        assert!(insn.imm != 0);
+                        insn.i_type = InsnType::InsnLui;
+                        return;
+                    }
+                }
+                0x4 => {
+                    let cfunct2high = cfunc_t2_high!(data);
+                    match cfunct2high {
+                        0x0 | 0x1 | 0x2 => {
+                            *insn = insn_cbtype_read2(data as u16);
+                            insn.rs1 = insn.rd;
+                            if cfunct2high == 0x0 {
+                                insn.i_type = InsnType::InsnSrli;
+                            } else if cfunct2high == 0x1 {
+                                insn.i_type = InsnType::InsnSrai;
+                            } else {
+                                insn.i_type = InsnType::InsnAndi;
+                            }
+                            return;
+                        }
+                        0x3 => {
+                            let cfunct1 = cfunc_t1!(data);
+                            match cfunct1 {
+                                0x0 => {
+                                    let cfunct2low = cfunc_t2_low!(data);
+
+                                    *insn = insn_catype_read(data as u16);
+                                    insn.rs1 = insn.rd;
+
+                                    match cfunct2low {
+                                        0x0 => {
+                                            insn.i_type = InsnType::InsnSub;
+                                        }
+                                        0x1 => {
+                                            insn.i_type = InsnType::InsnXor;
+                                        }
+                                        0x2 => {
+                                            insn.i_type = InsnType::InsnOr;
+                                        }
+                                        0x3 => {
+                                            insn.i_type = InsnType::InsnAnd;
+                                        }
+                                        _ => {
+                                            unreachable!()
+                                        }
+                                    }
+                                    return;
+                                }
+                                0x1 => {
+                                    let cfunct2low = cfunc_t2_low!(data);
+
+                                    *insn = insn_catype_read(data as u16);
+                                    insn.rs1 = insn.rd;
+                                    match cfunct2low {
+                                        0x0 => {
+                                            insn.i_type = InsnType::InsnSubw;
+                                        }
+                                        0x1 => {
+                                            insn.i_type = InsnType::InsnAnd;
+                                        }
+                                        _ => {
+                                            unreachable!()
+                                        }
+                                    }
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                0x5 => {
+                    *insn = insn_cjtype_read(data as u16);
+                    insn.rd = GpRegTypeT::Zero as i8;
+                    insn.i_type = InsnType::InsnJal;
+                    insn.cont = true;
+                    return;
+                }
+                0x6 | 0x7 => {
+                    *insn = insn_cbtype_read(data as u16);
+                    insn.rs2 = GpRegTypeT::Zero as i8;
+                    if copcode == 0x6 {
+                        insn.i_type = InsnType::InsnBeq;
+                    } else {
+                        insn.i_type = InsnType::InsnBne;
+                    }
+                    return;
+                }
+                _ => {
+                    fatal!("unrecognized copcode");
+                }
+            }
+        }
+        0x2 => {
+            let copcode = cop_code!(data);
+            match copcode {
+                0x0 => {
+                    *insn = insn_citype_read(data as u16);
+                    insn.rs1 = insn.rd;
+                    insn.i_type = InsnType::InsnSlli;
+                    return;
+                }
+                0x1 => {
+                    *insn = insn_citype_read2(data as u16);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnFld;
+                    return;
+                }
+                0x2 => {
+                    *insn = insn_citype_read4(data as u16);
+                    assert!(insn.rd != 0);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnLw;
+                    return;
+                }
+                0x3 => {
+                    *insn = insn_citype_read2(data as u16);
+                    assert!(insn.rd != 0);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnLd;
+                    return;
+                }
+                0x4 => {
+                    let cfunct1 = cfunc_t1!(data);
+                    match cfunct1 {
+                        0x0 => {
+                            *insn = insn_crtype_read(data as u16);
+
+                            if insn.rs2 == 0 {
+                                assert!(insn.rs1 != 0);
+                                insn.rd = GpRegTypeT::Zero as i8;
+                                insn.i_type = InsnType::InsnJalr;
+                                insn.cont = true;
+                            } else {
+                                insn.rd = insn.rs1;
+                                insn.rs1 = GpRegTypeT::Zero as i8;
+                                insn.i_type = InsnType::InsnAdd;
+                            }
+                            return;
+                        }
+                        0x1 => {
+                            *insn = insn_crtype_read(data as u16);
+                            if insn.rs1 == 0 && insn.rs2 == 0 {
+                                fatal!("unimplmented");
+                            } else if insn.rs2 == 0 {
+                                insn.rd = GpRegTypeT::RA as i8;
+                                insn.i_type = InsnType::InsnJalr;
+                                insn.cont = true;
+                            } else {
+                                insn.rd = insn.rs1;
+                                insn.i_type = InsnType::InsnAdd;
+                            }
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x5 => {
+                    *insn = insn_csstype_read(data as u16);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnFsd;
+                    return;
+                }
+                0x6 => {
+                    *insn = insn_csstype_read2(data as u16);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnSw;
+                    return;
+                }
+                0x7 => {
+                    *insn = insn_csstype_read(data as u16);
+                    insn.rs1 = GpRegTypeT::Sp as i8;
+                    insn.i_type = InsnType::InsnSd;
+                    return;
+                }
+                _ => {
+                    fatal!("unrecognized copcode")
+                }
+            }
+        }
+        0x3 => {
+            let opcode = op_code!(data);
+            match opcode {
+                0x0 => {
+                    let funct3 = func_t3!(data);
+                    *insn = insn_itype_read(data);
+                    match funct3 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnLb;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnLh;
+                            return;
+                        }
+                        0x2 => {
+                            insn.i_type = InsnType::InsnLw;
+                            return;
+                        }
+                        0x3 => {
+                            insn.i_type = InsnType::InsnLd;
+                            return;
+                        }
+                        0x4 => {
+                            insn.i_type = InsnType::InsnLbu;
+                            return;
+                        }
+                        0x5 => {
+                            insn.i_type = InsnType::InsnLhu;
+                            return;
+                        }
+                        0x6 => {
+                            insn.i_type = InsnType::InsnLwu;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x1 => {
+                    let funct3 = func_t3!(data);
+                    *insn = insn_itype_read(data);
+                    match funct3 {
+                        0x2 => {
+                            insn.i_type = InsnType::InsnFlw;
+                            return;
+                        }
+                        0x3 => {
+                            insn.i_type = InsnType::InsnFld;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x3 => {
+                    let funct3 = func_t3!(data);
+                    *insn = insn_itype_read(data);
+                    match funct3 {
+                        0x0 => {
+                            let mut _insn = Insn::new();
+                            _insn.rd = 0;
+                            *insn = _insn;
+                            insn.i_type = InsnType::InsnFence;
+                            return;
+                        }
+                        0x1 => {
+                            let mut _insn = Insn::new();
+                            _insn.rd = 0;
+                            *insn = _insn;
+                            insn.i_type = InsnType::InsnFenceI;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x4 => {
+                    let funct3 = func_t3!(data);
+
+                    *insn = insn_itype_read(data);
+                    match funct3 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnAddi;
+                            return;
+                        }
+                        0x1 => {
+                            let imm116 = imm_116!(data);
+                            if imm116 == 0 {
+                                insn.i_type = InsnType::InsnSlli;
+                            } else {
+                                unreachable!();
+                            }
+                            return;
+                        }
+                        0x2 => {
+                            insn.i_type = InsnType::InsnSlti;
+                            return;
+                        }
+                        0x3 => {
+                            insn.i_type = InsnType::InsnSltiu;
+                            return;
+                        }
+                        0x4 => {
+                            insn.i_type = InsnType::InsnXor;
+                            return;
+                        }
+                        0x5 => {
+                            let imm116 = imm_116!(data);
+
+                            if imm116 == 0x0 {
+                                /* SRLI */
+                                insn.i_type = InsnType::InsnSlti;
+                            } else if imm116 == 0x10 {
+                                /* SRAI */
+                                insn.i_type = InsnType::InsnSrai;
+                            } else {
+                                unreachable!();
+                            }
+                            return;
+                        }
+                        0x6 => {
+                            insn.i_type = InsnType::InsnOri;
+                            return;
+                        }
+                        0x7 => {
+                            insn.i_type = InsnType::InsnAddi;
+                            return;
+                        }
+                        _ => {
+                            fatal!("unrecognized funct3")
+                        }
+                    }
+                }
+                0x5 => {
+                    *insn = insn_utype_read(data);
+                    insn.i_type = InsnType::InsnAuipc;
+                    return;
+                }
+                0x6 => {
+                    let funct3 = func_t3!(data);
+                    let funct7 = func_t7!(data);
+
+                    *insn = insn_itype_read(data);
+                    match funct3 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnAddi;
+                            return;
+                        }
+                        0x1 => {
+                            assert!(funct7 == 0);
+                            insn.i_type = InsnType::InsnAddi;
+                            return;
+                        }
+                        0x5 => match funct7 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnSrliw;
+                                return;
+                            }
+                            0x20 => {
+                                insn.i_type = InsnType::InsnSraiw;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        _ => {
+                            fatal!("unimplemented")
+                        }
+                    }
+                }
+                0x8 => {
+                    let funct3 = func_t3!(data);
+
+                    *insn = insn_stype_read(data);
+                    match funct3 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnSb;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnSh;
+                            return;
+                        }
+                        0x2 => {
+                            insn.i_type = InsnType::InsnSw;
+                            return;
+                        }
+                        0x3 => {
+                            insn.i_type = InsnType::InsnSd;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x9 => {
+                    let funct3 = func_t3!(data);
+
+                    *insn = insn_stype_read(data);
+                    match funct3 {
+                        0x2 => {
+                            insn.i_type = InsnType::InsnFsw;
+                            return;
+                        }
+                        0x3 => {
+                            insn.i_type = InsnType::InsnFsd;
+                            return;
+                        }
+                        _ => {unreachable!()}
+                    }
+                }
+                _ => {}
+            }
+        }
         _ => unimplemented!(),
     }
 }
