@@ -12,6 +12,7 @@ pub mod machine;
 pub mod mmu;
 pub mod reg;
 pub mod rvemu;
+pub mod interp_utils;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

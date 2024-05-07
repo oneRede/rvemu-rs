@@ -1,3 +1,5 @@
+use crate::reg::{FpRegT, FpRegTypeT, GpRegTypeT};
+
 #[derive(Clone, Copy)]
 pub enum InsnType {
     InsnLb,
@@ -192,19 +194,30 @@ pub enum ExitReason {
     Ecall,
 }
 
+#[allow(dead_code)]
+enum CsrT {
+    Fflags = 0x001,
+    Frm = 0x002,
+    Fcsr = 0x003,
+}
+
 #[derive(Clone, Copy)]
 pub struct State {
     pub exit_reason: ExitReason,
-    pub gp_regs: [u64; 32],
+    pub gp_regs: [u64; GpRegTypeT::NumGpRegS as usize],
     pub pc: u64,
+    pub reenter_pc: u64,
+    pub fp_regs: [FpRegT; FpRegTypeT::NumFpRegs as usize],
 }
 
 impl State {
     pub fn new() -> State {
         State {
             exit_reason: ExitReason::None,
-            gp_regs: [0; 32],
+            gp_regs: [0; GpRegTypeT::NumGpRegS as usize],
             pc: 0,
+            reenter_pc: 0,
+            fp_regs: [FpRegT::new(); FpRegTypeT::NumFpRegs as usize],
         }
     }
 }

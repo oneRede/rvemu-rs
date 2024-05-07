@@ -1585,12 +1585,12 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                     return;
                 }
                 0x1c => {
-                    if data == 0x73 { 
+                    if data == 0x73 {
                         insn.i_type = InsnType::InsnEcall;
                         insn.cont = true;
                         return;
                     }
-        
+
                     let funct3 = func_t3!(data);
                     *insn = insn_csrtype_read(data);
 
@@ -1624,9 +1624,11 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                         }
                     }
                 }
-                _ => {}
+                _ => {
+                    unreachable!()
+                }
             }
         }
-        _ => unimplemented!(),
+        _ => unreachable!(),
     }
 }
