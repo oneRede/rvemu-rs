@@ -161,6 +161,17 @@ pub fn insn_stype_read(data: u32) -> Insn {
 }
 
 #[inline]
+pub fn insn_csrtype_read(data: u32) -> Insn {
+    let mut insn = Insn::new();
+
+    insn.csr = (data >> 20) as i16;
+    insn.rs1 = rs1!(data) as i8;
+    insn.rd = rd!(data) as i8;
+
+    return insn;
+}
+
+#[inline]
 pub fn insn_fprtype_read(data: u32) -> Insn {
     let mut insn = Insn::new();
 
@@ -973,7 +984,644 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             insn.i_type = InsnType::InsnFsd;
                             return;
                         }
-                        _ => {unreachable!()}
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0xc => {
+                    *insn = insn_rtype_read(data);
+
+                    let funct3 = func_t3!(data);
+                    let funct7 = func_t7!(data);
+                    match funct7 {
+                        0x0 => match funct3 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnAdd;
+                                return;
+                            }
+                            0x1 => {
+                                insn.i_type = InsnType::InsnSll;
+                                return;
+                            }
+                            0x2 => {
+                                insn.i_type = InsnType::InsnSlt;
+                                return;
+                            }
+                            0x3 => {
+                                insn.i_type = InsnType::InsnSltu;
+                                return;
+                            }
+                            0x4 => {
+                                insn.i_type = InsnType::InsnXor;
+                                return;
+                            }
+                            0x5 => {
+                                insn.i_type = InsnType::InsnSrl;
+                                return;
+                            }
+                            0x6 => {
+                                insn.i_type = InsnType::InsnOr;
+                                return;
+                            }
+                            0x7 => {
+                                insn.i_type = InsnType::InsnAdd;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        0x1 => match funct3 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnMul;
+                                return;
+                            }
+                            0x1 => {
+                                insn.i_type = InsnType::InsnMulh;
+                                return;
+                            }
+                            0x2 => {
+                                insn.i_type = InsnType::InsnMulhsu;
+                                return;
+                            }
+                            0x3 => {
+                                insn.i_type = InsnType::InsnMulhu;
+                                return;
+                            }
+                            0x4 => {
+                                insn.i_type = InsnType::InsnDiv;
+                                return;
+                            }
+                            0x5 => {
+                                insn.i_type = InsnType::InsnDivu;
+                                return;
+                            }
+                            0x6 => {
+                                insn.i_type = InsnType::InsnRem;
+                                return;
+                            }
+                            0x7 => {
+                                insn.i_type = InsnType::InsnRemu;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        0x20 => match funct3 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnSub;
+                                return;
+                            }
+                            0x5 => {
+                                insn.i_type = InsnType::InsnSra;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0xd => {
+                    *insn = insn_utype_read(data);
+                    insn.i_type = InsnType::InsnLui;
+                    return;
+                }
+                0xe => {
+                    *insn = insn_rtype_read(data);
+
+                    let funct3 = func_t3!(data);
+                    let funct7 = func_t7!(data);
+                    match funct7 {
+                        0x0 => match funct3 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnAddw;
+                                return;
+                            }
+                            0x1 => {
+                                insn.i_type = InsnType::InsnSllw;
+                                return;
+                            }
+                            0x5 => {
+                                insn.i_type = InsnType::InsnSrlw;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        0x1 => match funct3 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnMulw;
+                                return;
+                            }
+                            0x4 => {
+                                insn.i_type = InsnType::InsnDivw;
+                                return;
+                            }
+                            0x5 => {
+                                insn.i_type = InsnType::InsnDivuw;
+                                return;
+                            }
+                            0x6 => {
+                                insn.i_type = InsnType::InsnRemu;
+                                return;
+                            }
+                            0x7 => {
+                                insn.i_type = InsnType::InsnRemuw;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        0x20 => match funct3 {
+                            0x0 => {
+                                insn.i_type = InsnType::InsnSubw;
+                                return;
+                            }
+                            0x5 => {
+                                insn.i_type = InsnType::InsnSraw;
+                                return;
+                            }
+                            _ => {
+                                unreachable!()
+                            }
+                        },
+                        _ => {}
+                    }
+                }
+                0x10 => {
+                    let funct2 = func_t2!(data);
+
+                    *insn = insn_fprtype_read(data);
+                    match funct2 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnFmaddS;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnFmaddD;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x11 => {
+                    let funct2 = func_t2!(data);
+
+                    *insn = insn_fprtype_read(data);
+                    match funct2 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnFmsubS;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnFmsubD;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x12 => {
+                    let funct2 = func_t2!(data);
+
+                    *insn = insn_fprtype_read(data);
+                    match funct2 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnFnmsubS;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnFnmsubD;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x13 => {
+                    let funct2 = func_t2!(data);
+
+                    *insn = insn_fprtype_read(data);
+                    match funct2 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnFnmaddS;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnFnmaddD;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x14 => {
+                    let funct7 = func_t7!(data);
+
+                    *insn = insn_rtype_read(data);
+                    match funct7 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnFaddS;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnFaddD;
+                            return;
+                        }
+                        0x4 => {
+                            insn.i_type = InsnType::InsnFsubS;
+                            return;
+                        }
+                        0x5 => {
+                            insn.i_type = InsnType::InsnFsubD;
+                            return;
+                        }
+                        0x8 => {
+                            insn.i_type = InsnType::InsnFmulS;
+                            return;
+                        }
+                        0x9 => {
+                            insn.i_type = InsnType::InsnFmulD;
+                            return;
+                        }
+                        0xc => {
+                            insn.i_type = InsnType::InsnFdivS;
+                            return;
+                        }
+                        0xd => {
+                            insn.i_type = InsnType::InsnFdivD;
+                            return;
+                        }
+                        0x10 => {
+                            let funct3 = func_t3!(data);
+                            match funct3 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFsgnjS;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFsgnjnS;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFsgnjxS;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x11 => {
+                            let funct3 = func_t3!(data);
+                            match funct3 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFsgnjD;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFsgnjnD;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFsgnjxD;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x14 => {
+                            let funct3 = func_t3!(data);
+                            match funct3 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFminS;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFmaxS;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x15 => {
+                            let funct3 = func_t3!(data);
+                            match funct3 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFminD;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFmaxD;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x20 => {
+                            assert!(rs2!(data) == 1);
+                            insn.i_type = InsnType::InsnFcvtSD;
+                            return;
+                        }
+                        0x21 => {
+                            assert!(rs2!(data) == 1);
+                            insn.i_type = InsnType::InsnFcvtDS;
+                            return;
+                        }
+                        0x2c => {
+                            assert!(rs2!(data) == 1);
+                            insn.i_type = InsnType::InsnFsqrtS;
+                            return;
+                        }
+                        0x2d => {
+                            assert!(rs2!(data) == 1);
+                            insn.i_type = InsnType::InsnFsqrtD;
+                            return;
+                        }
+                        0x50 => {
+                            let funct3 = func_t3!(data);
+                            match funct3 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFleS;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFltS;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFeqS;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x51 => {
+                            let funct3 = func_t3!(data);
+                            match funct3 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFleD;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFltD;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFeqD;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x60 => {
+                            let rs2 = rs2!(data);
+                            match rs2 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFcvtWS;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFcvtWuS;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFcvtLS;
+                                    return;
+                                }
+                                0x3 => {
+                                    insn.i_type = InsnType::InsnFcvtLuS;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x61 => {
+                            let rs2 = rs2!(data);
+                            match rs2 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFcvtWD;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFcvtWuD;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFcvtLD;
+                                    return;
+                                }
+                                0x3 => {
+                                    insn.i_type = InsnType::InsnFcvtLuD;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x68 => {
+                            let rs2 = rs2!(data);
+                            match rs2 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFcvtSW;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFcvtSWu;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFcvtSL;
+                                    return;
+                                }
+                                0x3 => {
+                                    insn.i_type = InsnType::InsnFcvtSLu;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x69 => {
+                            let rs2 = rs2!(data);
+                            match rs2 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFcvtDW;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFcvtDWu;
+                                    return;
+                                }
+                                0x2 => {
+                                    insn.i_type = InsnType::InsnFcvtDL;
+                                    return;
+                                }
+                                0x3 => {
+                                    insn.i_type = InsnType::InsnFcvtDLu;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x70 => {
+                            let rs2 = rs2!(data);
+                            match rs2 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFmvXW;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFclassS;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x71 => {
+                            let rs2 = rs2!(data);
+                            match rs2 {
+                                0x0 => {
+                                    insn.i_type = InsnType::InsnFmvXD;
+                                    return;
+                                }
+                                0x1 => {
+                                    insn.i_type = InsnType::InsnFclassD;
+                                    return;
+                                }
+                                _ => {
+                                    unreachable!()
+                                }
+                            }
+                        }
+                        0x78 => {
+                            assert!(rs2!(data) == 0 && func_t3!(data) == 0);
+                            insn.i_type = InsnType::InsnFmvWX;
+                            return;
+                        }
+                        0x79 => {
+                            assert!(rs2!(data) == 0 && func_t3!(data) == 0);
+                            insn.i_type = InsnType::InsnFmvDX;
+                            return;
+                        }
+                        _ => {}
+                    }
+                }
+                0x18 => {
+                    *insn = insn_btype_read(data);
+
+                    let funct3 = func_t3!(data);
+                    match funct3 {
+                        0x0 => {
+                            insn.i_type = InsnType::InsnBeq;
+                            return;
+                        }
+                        0x1 => {
+                            insn.i_type = InsnType::InsnBne;
+                            return;
+                        }
+                        0x4 => {
+                            insn.i_type = InsnType::InsnBlt;
+                            return;
+                        }
+                        0x5 => {
+                            insn.i_type = InsnType::InsnBge;
+                            return;
+                        }
+                        0x6 => {
+                            insn.i_type = InsnType::InsnBltu;
+                            return;
+                        }
+                        0x7 => {
+                            insn.i_type = InsnType::InsnBgeu;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+                }
+                0x19 => {
+                    *insn = insn_itype_read(data);
+                    insn.i_type = InsnType::InsnJalr;
+                    insn.cont = true;
+                    return;
+                }
+                0x1b => {
+                    *insn = insn_jtype_read(data);
+                    insn.i_type = InsnType::InsnJal;
+                    insn.cont = true;
+                    return;
+                }
+                0x1c => {
+                    if data == 0x73 { 
+                        insn.i_type = InsnType::InsnEcall;
+                        insn.cont = true;
+                        return;
+                    }
+        
+                    let funct3 = func_t3!(data);
+                    *insn = insn_csrtype_read(data);
+
+                    match funct3 {
+                        0x1 => {
+                            insn.i_type = InsnType::InsnCsrrw;
+                            return;
+                        }
+                        0x2 => {
+                            insn.i_type = InsnType::InsnCsrrs;
+                            return;
+                        }
+                        0x3 => {
+                            insn.i_type = InsnType::InsnCsrrc;
+                            return;
+                        }
+                        0x5 => {
+                            insn.i_type = InsnType::InsnCsrrwi;
+                            return;
+                        }
+                        0x6 => {
+                            insn.i_type = InsnType::InsnCsrrsi;
+                            return;
+                        }
+                        0x7 => {
+                            insn.i_type = InsnType::InsnCsrrci;
+                            return;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
                     }
                 }
                 _ => {}
