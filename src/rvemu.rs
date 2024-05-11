@@ -195,7 +195,7 @@ pub enum ExitReason {
 }
 
 #[allow(dead_code)]
-enum CsrT {
+enum Csr {
     Fflags = 0x001,
     Frm = 0x002,
     Fcsr = 0x003,
