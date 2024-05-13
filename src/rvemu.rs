@@ -1,3 +1,4 @@
+use std::ptr;
 use crate::reg::{FpRegT, FpRegTypeT, GpRegTypeT};
 
 #[derive(Clone, Copy)]
@@ -242,4 +243,20 @@ macro_rules! fatal {
     ($msg: expr) => {
         println!("fatal: {}:{} {}", file!(), line!(), $msg)
     };
+}
+
+pub fn mmu_write(addr: u64, data: *const u8, len: usize) {
+    let n_ptr: *mut u8 = ptr::null_mut();
+    let n_ptr = unsafe { n_ptr.add(addr as usize)};
+    unsafe { n_ptr.copy_from(data, len) }
+}
+
+pub fn machine_get_gp_reg(m: Machine, reg: i32) -> u64{
+    assert!(reg>=0 && reg <= GpRegTypeT::NumGpRegS as i32);
+    return m.state.gp_regs[reg as usize]
+}
+
+pub fn machine_set_gp_reg(m: &mut Machine, reg: i32, data: u64) {
+    assert!(reg>=0 && reg <= GpRegTypeT::NumGpRegS as i32);
+    m.state.gp_regs[reg as usize] = data;
 }

@@ -44,6 +44,7 @@ macro_rules! min {
         }
     };
 }
+
 #[macro_export]
 macro_rules! max {
     ($x:expr, $y:expr) => {
@@ -52,6 +53,13 @@ macro_rules! max {
         } else {
             $y
         }
+    };
+}
+
+#[macro_export]
+macro_rules! array_size {
+    ($x:ident) => {
+        $x.len()
     };
 }
 
