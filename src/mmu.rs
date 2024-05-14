@@ -6,7 +6,7 @@ use std::{
     ptr, slice,
 };
 
-use libc::{mmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
+use libc::{mmap, munmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
 
 use crate::{
     elfdef::{
@@ -115,4 +115,41 @@ pub fn mmu_load_elf(mut mmu: &mut Mmu, fd: i32) {
             mmu_load_segment(&mut mmu, phdr, fd);
         }
     }
+}
+
+pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
+    let pz = page_size::get();
+    let base = mmu.alloc;
+    assert!(base >= mmu.base);
+
+    mmu.alloc += sz as u64;
+    assert!(mmu.alloc >= mmu.base);
+    if sz > 0 && mmu.alloc > to_guest!(mmu.host_alloc) {
+        let ptr: *mut u8 = ptr::null_mut();
+        let ptr = unsafe { ptr.add(mmu.alloc as usize) };
+        if unsafe {
+            mmap(
+                ptr as *mut c_void,
+                round_up!(sz, pz) as usize,
+                (PROT_READ | PROT_WRITE) as i32,
+                MAP_ANONYMOUS | MAP_PRIVATE,
+                -1i32,
+                0,
+            )
+        }
+        .is_null()
+        {
+            fatal!("mmap failed!")
+        }
+        mmu.host_alloc += round_up!(sz, pz);
+    } else {
+        let len = to_guest!(mmu.host_alloc) - round_up!(mmu.alloc, pz);
+        let ptr: *mut u8 = ptr::null_mut();
+        let ptr = unsafe { ptr.add(mmu.alloc as usize) };
+        if unsafe { munmap(ptr as *mut c_void, len as usize) } == -1 {
+            fatal!("munmap failed!")
+        }
+        mmu.host_alloc -= len;
+    }
+    return base;
 }

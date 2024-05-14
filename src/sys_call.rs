@@ -1,3 +1,11 @@
+use libc::close;
+
+use crate::{
+    fatal,
+    reg::GpRegTypeT,
+    rvemu::{machine_get_gp_reg, Machine},
+};
+
 pub const SYS_EXIT: usize = 93;
 pub const SYS_EXIT_GROUP: usize = 94;
 pub const SYS_GETPID: usize = 172;
@@ -66,7 +74,31 @@ pub const SYS_TIME: usize = 1062;
 
 #[macro_export]
 macro_rules! get {
-    ($reg:ident, $name:ident) => {
-        unimplemented!()
+    ($reg:expr, $name:ident) => {
+        // unimplement
     };
+}
+
+pub fn sys_unimplemented(m: Machine) {
+    fatal!(format!(
+        "unimplemented syscall: {}",
+        machine_get_gp_reg(m, GpRegTypeT::A7 as i32)
+    ));
+}
+
+#[allow(dead_code)]
+pub fn sys_exit(_m: Machine) -> u64{
+    get!(GpRegTypeT::A0, code);
+    // TODO: exit implement
+    // exit(0)
+    0
+}
+
+pub fn sys_close(_m: Machine) -> u64{
+    get!(GpRegTypeT::A0, fd);
+    let fd = 3;
+    if fd > 2 {
+        return unsafe { close(0) as u64 };
+    }
+    return 0;
 }
