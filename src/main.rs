@@ -8,11 +8,11 @@ use crate::{
 pub mod decode;
 pub mod elfdef;
 pub mod interp;
+pub mod interp_utils;
 pub mod machine;
 pub mod mmu;
 pub mod reg;
 pub mod rvemu;
-pub mod interp_utils;
 pub mod sys_call;
 
 fn main() {

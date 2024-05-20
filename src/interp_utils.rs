@@ -21,7 +21,7 @@ pub fn mulhu(a: u64, b: u64) -> u64 {
     y2 = t as u32;
     y3 = (t >> 32) as u32;
 
-    ((y3 << 32) | y2) as u64
+    (((y3 as u64) << 32) | y2 as u64) as u64
 }
 
 #[inline]

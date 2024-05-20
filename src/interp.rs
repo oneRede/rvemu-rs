@@ -7,42 +7,48 @@ use crate::{
     rvemu::{ExitReason, Insn, State},
     to_host,
 };
+use rvmu_rs::p_func1;
 
 pub fn func_empty(_state: &mut State, _insn: Insn) {}
 
 #[macro_export]
-macro_rules! func {
-    ($ty:ty) => {
-        unimplemented!()
+macro_rules! func_1 {
+    ($ty:ty, $state:ident, $insn:ident) => {
+        let addr = $state.gp_regs[$insn.rs1 as usize] + $insn.imm as u64;
+        let h_addr = to_host!(addr);
+        let ptr: *mut $ty = ptr::null_mut();
+        let ptr: *mut $ty = unsafe { ptr.add(h_addr as usize) };
+        let n: $ty = unsafe { *ptr.as_ref().unwrap() };
+        $state.gp_regs[$insn.rd as usize] = n as u64;
     };
 }
 
-pub fn func_lb(_state: &mut State, _insn: Insn) {
-    func!(i8)
+pub fn func_lb(state: &mut State, insn: Insn) {
+    p_func1!(i8);
 }
 
-pub fn func_lh(_state: &mut State, _insn: Insn) {
-    func!(i16)
+pub fn func_lh(state: &mut State, insn: Insn) {
+    func_1!(i16, state, insn);
 }
 
-pub fn func_lw(_state: &mut State, _insn: Insn) {
-    func!(i32)
+pub fn func_lw(state: &mut State, insn: Insn) {
+    func_1!(i32, state, insn);
 }
 
-pub fn func_ld(_state: &mut State, _insn: Insn) {
-    func!(i64)
+pub fn func_ld(state: &mut State, insn: Insn) {
+    func_1!(i64, state, insn);
 }
 
-pub fn func_lbu(_state: &mut State, _insn: Insn) {
-    func!(u8)
+pub fn func_lbu(state: &mut State, insn: Insn) {
+    func_1!(u8, state, insn);
 }
 
-pub fn func_lhu(_state: &mut State, _insn: Insn) {
-    func!(u8)
+pub fn func_lhu(state: &mut State, insn: Insn) {
+    func_1!(u16, state, insn);
 }
 
-pub fn func_lwu(_state: &mut State, _insn: Insn) {
-    func!(u8)
+pub fn func_lwu(state: &mut State, insn: Insn) {
+    func_1!(u32, state, insn);
 }
 
 #[macro_export]
@@ -52,8 +58,16 @@ macro_rules! func1 {
     };
 }
 
+#[macro_export]
+macro_rules! func_def {
+    ($state:ident, $insn:ident) => {
+        let rs1: u64 = $state.gp_regs[$insn.rs1 as usize];
+        let imm: i64 = $insn.imm as i64;
+    };
+}
+
 pub fn func_addi(_state: &mut State, _insn: Insn) {
-    func1!(rs1 + imm)
+    // func_2!("rs1 + imm", state, insn);
 }
 
 pub fn func_slli(_state: &mut State, _insn: Insn) {
