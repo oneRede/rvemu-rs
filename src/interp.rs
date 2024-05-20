@@ -2,53 +2,41 @@ use std::ptr;
 
 use crate::{
     decode::insn_decode,
-    interp_utils::{f32_classify, f64_classify},
+    interp_utils::{f32_classify, f64_classify, mulh, mulhsu, mulhu},
     reg::GpRegTypeT,
     rvemu::{ExitReason, Insn, State},
     to_host,
 };
-use rvmu_rs::p_func1;
+use rvmu_rs::{p_func1, p_func2, p_func3, p_func4};
 
 pub fn func_empty(_state: &mut State, _insn: Insn) {}
-
-#[macro_export]
-macro_rules! func_1 {
-    ($ty:ty, $state:ident, $insn:ident) => {
-        let addr = $state.gp_regs[$insn.rs1 as usize] + $insn.imm as u64;
-        let h_addr = to_host!(addr);
-        let ptr: *mut $ty = ptr::null_mut();
-        let ptr: *mut $ty = unsafe { ptr.add(h_addr as usize) };
-        let n: $ty = unsafe { *ptr.as_ref().unwrap() };
-        $state.gp_regs[$insn.rd as usize] = n as u64;
-    };
-}
 
 pub fn func_lb(state: &mut State, insn: Insn) {
     p_func1!(i8);
 }
 
 pub fn func_lh(state: &mut State, insn: Insn) {
-    func_1!(i16, state, insn);
+    p_func1!(i16);
 }
 
 pub fn func_lw(state: &mut State, insn: Insn) {
-    func_1!(i32, state, insn);
+    p_func1!(i32);
 }
 
 pub fn func_ld(state: &mut State, insn: Insn) {
-    func_1!(i64, state, insn);
+    p_func1!(i64);
 }
 
 pub fn func_lbu(state: &mut State, insn: Insn) {
-    func_1!(u8, state, insn);
+    p_func1!(u8);
 }
 
 pub fn func_lhu(state: &mut State, insn: Insn) {
-    func_1!(u16, state, insn);
+    p_func1!(u16);
 }
 
 pub fn func_lwu(state: &mut State, insn: Insn) {
-    func_1!(u32, state, insn);
+    p_func1!(u32);
 }
 
 #[macro_export]
@@ -58,64 +46,56 @@ macro_rules! func1 {
     };
 }
 
-#[macro_export]
-macro_rules! func_def {
-    ($state:ident, $insn:ident) => {
-        let rs1: u64 = $state.gp_regs[$insn.rs1 as usize];
-        let imm: i64 = $insn.imm as i64;
-    };
+pub fn func_addi(state: &mut State, insn: Insn) {
+    p_func2!(rs1 + imm);
 }
 
-pub fn func_addi(_state: &mut State, _insn: Insn) {
-    // func_2!("rs1 + imm", state, insn);
+pub fn func_slli(state: &mut State, insn: Insn) {
+    p_func2!(rs1 << (imm & 0x3f));
 }
 
-pub fn func_slli(_state: &mut State, _insn: Insn) {
-    func1!(rs1 << (imm & 0x3f))
+pub fn func_slti(state: &mut State, insn: Insn) {
+    p_func2!((rs1 as i64) < (imm as i64));
 }
 
-pub fn func_slti(_state: &mut State, _insn: Insn) {
-    func1!((rs1 as i64) < (imm as i64))
+pub fn func_sltiu(state: &mut State, insn: Insn) {
+    p_func2!((rs1 as u64) < (imm as u64));
 }
 
-pub fn func_sltiu(_state: &mut State, _insn: Insn) {
-    func1!((rs1 as u64) < (imm as u64))
+pub fn func_xori(state: &mut State, insn: Insn) {
+    p_func2!(rs1 ^ imm);
 }
 
-pub fn func_xori(_state: &mut State, _insn: Insn) {
-    func1!(rs1 ^ imm)
+pub fn func_srli(state: &mut State, insn: Insn) {
+    p_func2!(rs1 >> (imm & 0x3f));
 }
 
-pub fn func_srli(_state: &mut State, _insn: Insn) {
-    func1!(rs1 >> (imm & 0x3f))
+pub fn func_srai(state: &mut State, insn: Insn) {
+    p_func2!(rs1 as i64 >> (imm & 0x3f));
 }
 
-pub fn func_srai(_state: &mut State, _insn: Insn) {
-    func1!(rs1 as i64 >> (imm & 0x3f))
+pub fn func_ori(state: &mut State, insn: Insn) {
+    p_func2!(rs1 | (imm));
 }
 
-pub fn func_ori(_state: &mut State, _insn: Insn) {
-    func1!(rs1 | (imm as i64))
+pub fn func_andi(state: &mut State, insn: Insn) {
+    p_func2!(rs1 | (imm as u64));
 }
 
-pub fn func_andi(_state: &mut State, _insn: Insn) {
-    func1!(rs1 | (imm as u64))
+pub fn func_addiw(state: &mut State, insn: Insn) {
+    p_func2!((rs1 + imm) as i64);
 }
 
-pub fn func_addiw(_state: &mut State, _insn: Insn) {
-    func1!((rs1 + imm) as i64)
+pub fn func_slliw(state: &mut State, insn: Insn) {
+    p_func2!((rs1 << (imm & 0x1f)) as i64);
 }
 
-pub fn func_slliw(_state: &mut State, _insn: Insn) {
-    func1!((rs1 << (imm & 0x1f)) as i64)
+pub fn func_srliw(state: &mut State, insn: Insn) {
+    p_func2!(((rs1 as u32) >> (imm & 0x1f)) as i64);
 }
 
-pub fn func_srliw(_state: &mut State, _insn: Insn) {
-    func1!(((rs1 as u32) >> (imm & 0x1f)) as i64)
-}
-
-pub fn func_sraiw(_state: &mut State, _insn: Insn) {
-    func1!(((rs1 as i32) >> (imm & 0x1f)) as i64)
+pub fn func_sraiw(state: &mut State, insn: Insn) {
+    p_func2!(((rs1 as i32) >> (imm & 0x1f)) as i64);
 }
 
 pub fn func_auipc(state: &mut State, insn: Insn) {
@@ -130,141 +110,135 @@ macro_rules! func2 {
     };
 }
 
-pub fn func_sb(_state: &mut State, _insn: Insn) {
-    func2!(u8)
+pub fn func_sb(state: &mut State, insn: Insn) {
+    p_func3!(u8);
 }
 
-pub fn func_sh(_state: &mut State, _insn: Insn) {
-    func2!(u16)
+pub fn func_sh(state: &mut State, insn: Insn) {
+    p_func3!(u16);
 }
 
-pub fn func_sw(_state: &mut State, _insn: Insn) {
-    func2!(u32)
+pub fn func_sw(state: &mut State, insn: Insn) {
+    p_func3!(u32);
 }
 
-pub fn func_sd(_state: &mut State, _insn: Insn) {
-    func2!(u64)
+pub fn func_sd(state: &mut State, insn: Insn) {
+    p_func3!(u64);
 }
 
-#[macro_export]
-macro_rules! func3 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_add(state: &mut State, insn: Insn) {
+    p_func4!(rs1 + rs2);
 }
 
-pub fn func_add(_state: &mut State, _insn: Insn) {
-    func3!(rs1 + rs2)
+pub fn func_sll(state: &mut State, insn: Insn) {
+    p_func4!(rs1 << (rs2 & 0x3f));
 }
 
-pub fn func_sll(_state: &mut State, _insn: Insn) {
-    func3!(rs1 << (rs2 & 0x3f))
+pub fn func_slt(state: &mut State, insn: Insn) {
+    p_func4!((rs1 as i64) < (rs2 as i64));
 }
 
-pub fn func_slt(_state: &mut State, _insn: Insn) {
-    func3!((rs1 as i64) < (rs2 as i64))
+pub fn func_sltu(state: &mut State, insn: Insn) {
+    p_func4!((rs1 as u64) < (rs2 as u64));
 }
 
-pub fn func_sltu(_state: &mut State, _insn: Insn) {
-    func3!((rs1 as u64) < (rs2 as u64))
+pub fn func_xor(state: &mut State, insn: Insn) {
+    p_func4!(rs1 ^ rs2);
 }
 
-pub fn func_xor(_state: &mut State, _insn: Insn) {
-    func3!(rs1 ^ rs2)
+pub fn func_srl(state: &mut State, insn: Insn) {
+    p_func4!(rs1 >> (rs2 & 0x3f));
 }
 
-pub fn func_srl(_state: &mut State, _insn: Insn) {
-    func3!(rs1 >> (rs2 & 0x3f))
+pub fn func_or(state: &mut State, insn: Insn) {
+    p_func4!(rs1 | rs2);
 }
 
-pub fn func_or(_state: &mut State, _insn: Insn) {
-    func3!(rs1 | rs2)
+pub fn func_and(state: &mut State, insn: Insn) {
+    p_func4!(rs1 & rs2);
 }
 
-pub fn func_and(_state: &mut State, _insn: Insn) {
-    func3!(rs1 & rs2)
+pub fn func_mul(state: &mut State, insn: Insn) {
+    p_func4!(rs1 * rs2);
 }
 
-pub fn func_mul(_state: &mut State, _insn: Insn) {
-    func3!(rs1 * rs2)
+pub fn func_mulh(state: &mut State, insn: Insn) {
+    p_func4!(mulh(rs1 as i64, rs2 as i64));
 }
 
-pub fn func_mulh(_state: &mut State, _insn: Insn) {
-    func3!(mulh(rs1, rs2))
+pub fn func_mulhsu(state: &mut State, insn: Insn) {
+    p_func4!(mulhsu(rs1 as i64, rs2));
 }
 
-pub fn func_mulhsu(_state: &mut State, _insn: Insn) {
-    func3!(mulhsu(rs1, rs2))
+pub fn func_mulhu(state: &mut State, insn: Insn) {
+    p_func4!(mulhu(rs1, rs2));
 }
 
-pub fn func_mulhu(_state: &mut State, _insn: Insn) {
-    func3!(mulhu(rs1, rs2))
+pub fn func_sub(state: &mut State, insn: Insn) {
+    p_func4!(rs1 - rs2);
 }
 
-pub fn func_sub(_state: &mut State, _insn: Insn) {
-    func3!(rs1 - rs2)
+pub fn func_sra(state: &mut State, insn: Insn) {
+    p_func4!((rs1 as i64) >> (rs2 & 0x3f));
 }
 
-pub fn func_sra(_state: &mut State, _insn: Insn) {
-    func3!((rs1 as i64) >> (rs2 & 0x3f))
+pub fn func_remu(state: &mut State, insn: Insn) {
+    p_func4!(if rs2 == 0 { rs1 } else { rs1 % rs2 });
 }
 
-pub fn func_remu(_state: &mut State, _insn: Insn) {
-    func3!(unimplemented!())
+pub fn func_addw(state: &mut State, insn: Insn) {
+    p_func4!((rs1 + rs2) as i64);
 }
 
-pub fn func_addw(_state: &mut State, _insn: Insn) {
-    func3!((rs1 + rs2) as i64)
+pub fn func_sllw(state: &mut State, insn: Insn) {
+    p_func4!((rs1 << (rs2 & 0x1f)) as i64);
 }
 
-pub fn func_sllw(_state: &mut State, _insn: Insn) {
-    func3!((rs1 << (rs2 & 0x1f)) as i64)
+pub fn func_srlw(state: &mut State, insn: Insn) {
+    p_func4!(((rs1 as u32) >> (rs2 & 0x1f)) as i64);
 }
 
-pub fn func_srlw(_state: &mut State, _insn: Insn) {
-    func3!(((rs1 as u32) >> (rs2 & 0x1f)) as i64)
+pub fn func_mulw(state: &mut State, insn: Insn) {
+    p_func4!((rs1 * rs2) as i64);
 }
 
-pub fn func_mulw(_state: &mut State, _insn: Insn) {
-    func3!((rs1 * rs2) as i64)
+pub fn func_divw(state: &mut State, insn: Insn) {
+    p_func4!(if rs2 == 0 { u64::MAX } else { rs1 / rs2 });
 }
 
-pub fn func_divw(_state: &mut State, _insn: Insn) {
-    func3!(unimplemented!())
+pub fn func_divuw(state: &mut State, insn: Insn) {
+    p_func4!(if rs2 == 0 { u64::MAX } else { rs1 / rs2 });
 }
 
-pub fn func_divuw(_state: &mut State, _insn: Insn) {
-    func3!(unimplemented!())
+pub fn func_remw(state: &mut State, insn: Insn) {
+    p_func4!(if rs2 == 0 { rs1 } else { rs1 % rs2 });
 }
 
-pub fn func_remw(_state: &mut State, _insn: Insn) {
-    func3!(unimplemented!())
+pub fn func_remuw(state: &mut State, insn: Insn) {
+    p_func4!(if rs2 == 0 { rs1 } else { rs1 % rs2 });
 }
 
-pub fn func_remuw(_state: &mut State, _insn: Insn) {
-    func3!(unimplemented!())
+pub fn func_subw(state: &mut State, insn: Insn) {
+    p_func4!((rs1 - rs2));
 }
 
-pub fn func_subw(_state: &mut State, _insn: Insn) {
-    func3!((rs1 - rs2) as i64)
-}
-
-pub fn func_sraw(_state: &mut State, _insn: Insn) {
-    func3!(((rs1 as i32) >> (rs2 & 0x1f)) as i64)
+pub fn func_sraw(state: &mut State, insn: Insn) {
+    p_func4!(((rs1 as i32) >> (rs2 & 0x1f)));
 }
 
 pub fn func_div(state: &mut State, insn: Insn) {
     let rs1 = state.gp_regs[insn.rs1 as usize];
     let rs2 = state.gp_regs[insn.rs2 as usize];
-    let mut rd = 0;
+    let rd: i128;
 
     if rs2 == 0 {
-        rd = u64::MAX;
+        rd = u64::MAX as i128;
     } else if rs1 as i64 == i64::MIN && rs2 == u64::MAX {
-        //NOTE: i64::MIN to u64
-        rd = i64::MIN as u64
+        rd = i64::MIN as i128;
+    } else {
+        rd = (rs1 / rs2) as i128;
     }
-    state.gp_regs[insn.rd as usize] = rd
+    state.gp_regs[insn.rd as usize] = rd as u64;
 }
 
 pub fn func_divu(state: &mut State, insn: Insn) {
