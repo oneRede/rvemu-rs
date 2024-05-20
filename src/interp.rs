@@ -7,35 +7,35 @@ use crate::{
     rvemu::{ExitReason, Insn, State},
     to_host,
 };
-use rvmu_rs::{p_func1, p_func2, p_func3, p_func4};
+use rvmu_rs::{p_func1, p_func2, p_func3, p_func4, p_func5, p_func6};
 
-pub fn func_empty(_state: &mut State, _insn: Insn) {}
+pub fn func_empty(_state: &mut State, _insn: &mut Insn) {}
 
-pub fn func_lb(state: &mut State, insn: Insn) {
+pub fn func_lb(state: &mut State, insn: &mut Insn) {
     p_func1!(i8);
 }
 
-pub fn func_lh(state: &mut State, insn: Insn) {
+pub fn func_lh(state: &mut State, insn: &mut Insn) {
     p_func1!(i16);
 }
 
-pub fn func_lw(state: &mut State, insn: Insn) {
+pub fn func_lw(state: &mut State, insn: &mut Insn) {
     p_func1!(i32);
 }
 
-pub fn func_ld(state: &mut State, insn: Insn) {
+pub fn func_ld(state: &mut State, insn: &mut Insn) {
     p_func1!(i64);
 }
 
-pub fn func_lbu(state: &mut State, insn: Insn) {
+pub fn func_lbu(state: &mut State, insn: &mut Insn) {
     p_func1!(u8);
 }
 
-pub fn func_lhu(state: &mut State, insn: Insn) {
+pub fn func_lhu(state: &mut State, insn: &mut Insn) {
     p_func1!(u16);
 }
 
-pub fn func_lwu(state: &mut State, insn: Insn) {
+pub fn func_lwu(state: &mut State, insn: &mut Insn) {
     p_func1!(u32);
 }
 
@@ -46,59 +46,59 @@ macro_rules! func1 {
     };
 }
 
-pub fn func_addi(state: &mut State, insn: Insn) {
+pub fn func_addi(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 + imm);
 }
 
-pub fn func_slli(state: &mut State, insn: Insn) {
+pub fn func_slli(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 << (imm & 0x3f));
 }
 
-pub fn func_slti(state: &mut State, insn: Insn) {
+pub fn func_slti(state: &mut State, insn: &mut Insn) {
     p_func2!((rs1 as i64) < (imm as i64));
 }
 
-pub fn func_sltiu(state: &mut State, insn: Insn) {
+pub fn func_sltiu(state: &mut State, insn: &mut Insn) {
     p_func2!((rs1 as u64) < (imm as u64));
 }
 
-pub fn func_xori(state: &mut State, insn: Insn) {
+pub fn func_xori(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 ^ imm);
 }
 
-pub fn func_srli(state: &mut State, insn: Insn) {
+pub fn func_srli(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 >> (imm & 0x3f));
 }
 
-pub fn func_srai(state: &mut State, insn: Insn) {
+pub fn func_srai(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 as i64 >> (imm & 0x3f));
 }
 
-pub fn func_ori(state: &mut State, insn: Insn) {
+pub fn func_ori(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 | (imm));
 }
 
-pub fn func_andi(state: &mut State, insn: Insn) {
+pub fn func_andi(state: &mut State, insn: &mut Insn) {
     p_func2!(rs1 | (imm as u64));
 }
 
-pub fn func_addiw(state: &mut State, insn: Insn) {
+pub fn func_addiw(state: &mut State, insn: &mut Insn) {
     p_func2!((rs1 + imm) as i64);
 }
 
-pub fn func_slliw(state: &mut State, insn: Insn) {
+pub fn func_slliw(state: &mut State, insn: &mut Insn) {
     p_func2!((rs1 << (imm & 0x1f)) as i64);
 }
 
-pub fn func_srliw(state: &mut State, insn: Insn) {
+pub fn func_srliw(state: &mut State, insn: &mut Insn) {
     p_func2!(((rs1 as u32) >> (imm & 0x1f)) as i64);
 }
 
-pub fn func_sraiw(state: &mut State, insn: Insn) {
+pub fn func_sraiw(state: &mut State, insn: &mut Insn) {
     p_func2!(((rs1 as i32) >> (imm & 0x1f)) as i64);
 }
 
-pub fn func_auipc(state: &mut State, insn: Insn) {
+pub fn func_auipc(state: &mut State, insn: &mut Insn) {
     let val = state.pc + insn.imm as u64;
     state.gp_regs[insn.rd as usize] = val;
 }
@@ -110,123 +110,123 @@ macro_rules! func2 {
     };
 }
 
-pub fn func_sb(state: &mut State, insn: Insn) {
+pub fn func_sb(state: &mut State, insn: &mut Insn) {
     p_func3!(u8);
 }
 
-pub fn func_sh(state: &mut State, insn: Insn) {
+pub fn func_sh(state: &mut State, insn: &mut Insn) {
     p_func3!(u16);
 }
 
-pub fn func_sw(state: &mut State, insn: Insn) {
+pub fn func_sw(state: &mut State, insn: &mut Insn) {
     p_func3!(u32);
 }
 
-pub fn func_sd(state: &mut State, insn: Insn) {
+pub fn func_sd(state: &mut State, insn: &mut Insn) {
     p_func3!(u64);
 }
 
-pub fn func_add(state: &mut State, insn: Insn) {
+pub fn func_add(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 + rs2);
 }
 
-pub fn func_sll(state: &mut State, insn: Insn) {
+pub fn func_sll(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 << (rs2 & 0x3f));
 }
 
-pub fn func_slt(state: &mut State, insn: Insn) {
+pub fn func_slt(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 as i64) < (rs2 as i64));
 }
 
-pub fn func_sltu(state: &mut State, insn: Insn) {
+pub fn func_sltu(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 as u64) < (rs2 as u64));
 }
 
-pub fn func_xor(state: &mut State, insn: Insn) {
+pub fn func_xor(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 ^ rs2);
 }
 
-pub fn func_srl(state: &mut State, insn: Insn) {
+pub fn func_srl(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 >> (rs2 & 0x3f));
 }
 
-pub fn func_or(state: &mut State, insn: Insn) {
+pub fn func_or(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 | rs2);
 }
 
-pub fn func_and(state: &mut State, insn: Insn) {
+pub fn func_and(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 & rs2);
 }
 
-pub fn func_mul(state: &mut State, insn: Insn) {
+pub fn func_mul(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 * rs2);
 }
 
-pub fn func_mulh(state: &mut State, insn: Insn) {
+pub fn func_mulh(state: &mut State, insn: &mut Insn) {
     p_func4!(mulh(rs1 as i64, rs2 as i64));
 }
 
-pub fn func_mulhsu(state: &mut State, insn: Insn) {
+pub fn func_mulhsu(state: &mut State, insn: &mut Insn) {
     p_func4!(mulhsu(rs1 as i64, rs2));
 }
 
-pub fn func_mulhu(state: &mut State, insn: Insn) {
+pub fn func_mulhu(state: &mut State, insn: &mut Insn) {
     p_func4!(mulhu(rs1, rs2));
 }
 
-pub fn func_sub(state: &mut State, insn: Insn) {
+pub fn func_sub(state: &mut State, insn: &mut Insn) {
     p_func4!(rs1 - rs2);
 }
 
-pub fn func_sra(state: &mut State, insn: Insn) {
+pub fn func_sra(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 as i64) >> (rs2 & 0x3f));
 }
 
-pub fn func_remu(state: &mut State, insn: Insn) {
+pub fn func_remu(state: &mut State, insn: &mut Insn) {
     p_func4!(if rs2 == 0 { rs1 } else { rs1 % rs2 });
 }
 
-pub fn func_addw(state: &mut State, insn: Insn) {
+pub fn func_addw(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 + rs2) as i64);
 }
 
-pub fn func_sllw(state: &mut State, insn: Insn) {
+pub fn func_sllw(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 << (rs2 & 0x1f)) as i64);
 }
 
-pub fn func_srlw(state: &mut State, insn: Insn) {
+pub fn func_srlw(state: &mut State, insn: &mut Insn) {
     p_func4!(((rs1 as u32) >> (rs2 & 0x1f)) as i64);
 }
 
-pub fn func_mulw(state: &mut State, insn: Insn) {
+pub fn func_mulw(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 * rs2) as i64);
 }
 
-pub fn func_divw(state: &mut State, insn: Insn) {
+pub fn func_divw(state: &mut State, insn: &mut Insn) {
     p_func4!(if rs2 == 0 { u64::MAX } else { rs1 / rs2 });
 }
 
-pub fn func_divuw(state: &mut State, insn: Insn) {
+pub fn func_divuw(state: &mut State, insn: &mut Insn) {
     p_func4!(if rs2 == 0 { u64::MAX } else { rs1 / rs2 });
 }
 
-pub fn func_remw(state: &mut State, insn: Insn) {
+pub fn func_remw(state: &mut State, insn: &mut Insn) {
     p_func4!(if rs2 == 0 { rs1 } else { rs1 % rs2 });
 }
 
-pub fn func_remuw(state: &mut State, insn: Insn) {
+pub fn func_remuw(state: &mut State, insn: &mut Insn) {
     p_func4!(if rs2 == 0 { rs1 } else { rs1 % rs2 });
 }
 
-pub fn func_subw(state: &mut State, insn: Insn) {
+pub fn func_subw(state: &mut State, insn: &mut Insn) {
     p_func4!((rs1 - rs2));
 }
 
-pub fn func_sraw(state: &mut State, insn: Insn) {
+pub fn func_sraw(state: &mut State, insn: &mut Insn) {
     p_func4!(((rs1 as i32) >> (rs2 & 0x1f)));
 }
 
-pub fn func_div(state: &mut State, insn: Insn) {
+pub fn func_div(state: &mut State, insn: &mut Insn) {
     let rs1 = state.gp_regs[insn.rs1 as usize];
     let rs2 = state.gp_regs[insn.rs2 as usize];
     let rd: i128;
@@ -241,7 +241,7 @@ pub fn func_div(state: &mut State, insn: Insn) {
     state.gp_regs[insn.rd as usize] = rd as u64;
 }
 
-pub fn func_divu(state: &mut State, insn: Insn) {
+pub fn func_divu(state: &mut State, insn: &mut Insn) {
     let rs1 = state.gp_regs[insn.rs1 as usize];
     let rs2 = state.gp_regs[insn.rs2 as usize];
     let rd;
@@ -254,7 +254,7 @@ pub fn func_divu(state: &mut State, insn: Insn) {
     state.gp_regs[insn.rd as usize] = rd
 }
 
-pub fn func_rem(state: &mut State, insn: Insn) {
+pub fn func_rem(state: &mut State, insn: &mut Insn) {
     let rs1 = state.gp_regs[insn.rs1 as usize];
     let rs2 = state.gp_regs[insn.rs2 as usize];
     let rd;
@@ -269,97 +269,83 @@ pub fn func_rem(state: &mut State, insn: Insn) {
     state.gp_regs[insn.rd as usize] = rd
 }
 
-pub fn func_lui(state: &mut State, insn: Insn) {
+pub fn func_lui(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = insn.imm as u64;
 }
 
-#[macro_export]
-macro_rules! func4 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_beq(state: &mut State, insn: &mut Insn) {
+    p_func5!(rs1 == rs2);
 }
 
-pub fn func_beq(_state: &mut State, _insn: Insn) {
-    func4!(rs1 == rs2)
+pub fn func_bne(state: &mut State, insn: &mut Insn) {
+    p_func5!(rs1 != rs2);
 }
 
-pub fn func_bne(_state: &mut State, _insn: Insn) {
-    func4!(rs1 != rs2)
+pub fn func_blt(state: &mut State, insn: &mut Insn) {
+    p_func5!(rs1 < rs2);
 }
 
-pub fn func_blt(_state: &mut State, _insn: Insn) {
-    func4!(rs1 < rs2)
+pub fn func_bge(state: &mut State, insn: &mut Insn) {
+    p_func5!(rs1 >= rs2);
 }
 
-pub fn func_bge(_state: &mut State, _insn: Insn) {
-    func4!(rs1 >= rs2)
+pub fn func_bltu(state: &mut State, insn: &mut Insn) {
+    p_func5!(rs1 < rs2);
 }
 
-pub fn func_bltu(_state: &mut State, _insn: Insn) {
-    func4!(rs1 < rs2)
+pub fn func_bgeu(state: &mut State, insn: &mut Insn) {
+    p_func5!(rs1 >= rs2);
 }
 
-pub fn func_bgeu(_state: &mut State, _insn: Insn) {
-    func4!(rs1 >= rs2)
-}
-
-pub fn func_jalr(state: &mut State, insn: Insn) {
+pub fn func_jalr(state: &mut State, insn: &mut Insn) {
     let rs1 = state.gp_regs[insn.rs1 as usize];
     state.gp_regs[insn.rd as usize] = state.pc + (if insn.rvc { 2 } else { 4 });
     state.exit_reason = ExitReason::IndirectBranch;
     state.reenter_pc = rs1 + (insn.imm as u64 & !1u64);
 }
 
-pub fn func_jal(state: &mut State, insn: Insn) {
+pub fn func_jal(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.pc + (if insn.rvc { 2 } else { 4 });
     state.pc = state.pc + insn.imm as u64;
     state.reenter_pc = state.pc;
     state.exit_reason = ExitReason::IndirectBranch;
 }
 
-pub fn func_ecall(state: &mut State, _insn: Insn) {
+pub fn func_ecall(state: &mut State, _insn: &mut Insn) {
     state.exit_reason = ExitReason::Ecall;
     state.reenter_pc = state.pc + 4;
 }
 
-#[macro_export]
-macro_rules! func5 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_csrrw(state: &mut State, insn: &mut Insn) {
+    p_func6!(0);
 }
 
-pub fn func_csrrw(_state: &mut State, _insn: Insn) {
-    func5!(unimplemented!())
+pub fn func_csrrs(state: &mut State, insn: &mut Insn) {
+    p_func6!(0);
 }
 
-pub fn func_csrrs(_state: &mut State, _insn: Insn) {
-    func5!(unimplemented!())
+pub fn func_csrrc(state: &mut State, insn: &mut Insn) {
+    p_func6!(0);
 }
 
-pub fn func_csrrc(_state: &mut State, _insn: Insn) {
-    func5!(unimplemented!())
+pub fn func_csrrwi(state: &mut State, insn: &mut Insn) {
+    p_func6!(0);
 }
 
-pub fn func_csrrwi(_state: &mut State, _insn: Insn) {
-    func5!(unimplemented!())
+pub fn func_csrrsi(state: &mut State, insn: &mut Insn) {
+    p_func6!(0);
 }
 
-pub fn func_csrrsi(_state: &mut State, _insn: Insn) {
-    func5!(unimplemented!())
+pub fn func_csrrci(state: &mut State, insn: &mut Insn) {
+    p_func6!(0);
 }
 
-pub fn func_csrrci(_state: &mut State, _insn: Insn) {
-    func5!(unimplemented!())
-}
-
-pub fn func_flw(state: &mut State, insn: Insn) {
+pub fn func_flw(state: &mut State, insn: &mut Insn) {
     let addr = state.gp_regs[insn.rs1 as usize] + insn.imm as u64;
     state.fp_regs[insn.rd as usize].v = to_host!(addr) | (-1i64 << 32) as u64;
 }
 
-pub fn func_fld(state: &mut State, insn: Insn) {
+pub fn func_fld(state: &mut State, insn: &mut Insn) {
     let addr = state.gp_regs[insn.rs1 as usize] + insn.imm as u64;
     state.fp_regs[insn.rd as usize].v = to_host!(addr);
 }
@@ -371,11 +357,11 @@ macro_rules! func6 {
     };
 }
 
-pub fn func_fsw(_state: &mut State, _insn: Insn) {
+pub fn func_fsw(_state: &mut State, _insn: &mut Insn) {
     func6!(unimplemented!())
 }
 
-pub fn func_fsd(_state: &mut State, _insn: Insn) {
+pub fn func_fsd(_state: &mut State, _insn: &mut Insn) {
     func6!(unimplemented!())
 }
 
@@ -386,19 +372,19 @@ macro_rules! func7 {
     };
 }
 
-pub fn func_fmadd_s(_state: &mut State, _insn: Insn) {
+pub fn func_fmadd_s(_state: &mut State, _insn: &mut Insn) {
     func7!(rs1 * rs2 + rs3)
 }
 
-pub fn func_fmsub_s(_state: &mut State, _insn: Insn) {
+pub fn func_fmsub_s(_state: &mut State, _insn: &mut Insn) {
     func7!(rs1 * rs2 - rs3)
 }
 
-pub fn func_fnmsub_s(_state: &mut State, _insn: Insn) {
+pub fn func_fnmsub_s(_state: &mut State, _insn: &mut Insn) {
     func7!(-(rs1 * rs2) + rs3)
 }
 
-pub fn func_fnmadd_s(_state: &mut State, _insn: Insn) {
+pub fn func_fnmadd_s(_state: &mut State, _insn: &mut Insn) {
     func7!(-(rs1 * rs2) - rs3)
 }
 
@@ -409,19 +395,19 @@ macro_rules! func8 {
     };
 }
 
-pub fn func_fmadd_d(_state: &mut State, _insn: Insn) {
+pub fn func_fmadd_d(_state: &mut State, _insn: &mut Insn) {
     func8!(rs1 * rs2 + rs3)
 }
 
-pub fn func_fmsub_d(_state: &mut State, _insn: Insn) {
+pub fn func_fmsub_d(_state: &mut State, _insn: &mut Insn) {
     func8!(rs1 * rs2 - rs3)
 }
 
-pub fn func_fnmsub_d(_state: &mut State, _insn: Insn) {
+pub fn func_fnmsub_d(_state: &mut State, _insn: &mut Insn) {
     func8!(-(rs1 * rs2) + rs3)
 }
 
-pub fn func_fnmadd_d(_state: &mut State, _insn: Insn) {
+pub fn func_fnmadd_d(_state: &mut State, _insn: &mut Insn) {
     func8!(-(rs1 * rs2) - rs3)
 }
 
@@ -432,31 +418,31 @@ macro_rules! func9 {
     };
 }
 
-pub fn func_fadd_s(_state: &mut State, _insn: Insn) {
+pub fn func_fadd_s(_state: &mut State, _insn: &mut Insn) {
     func9!(rs1 + rs2)
 }
 
-pub fn func_fsub_s(_state: &mut State, _insn: Insn) {
+pub fn func_fsub_s(_state: &mut State, _insn: &mut Insn) {
     func9!(rs1 - rs2)
 }
 
-pub fn func_fmul_s(_state: &mut State, _insn: Insn) {
+pub fn func_fmul_s(_state: &mut State, _insn: &mut Insn) {
     func9!(rs1 * rs2)
 }
 
-pub fn func_fdiv_s(_state: &mut State, _insn: Insn) {
+pub fn func_fdiv_s(_state: &mut State, _insn: &mut Insn) {
     func9!(rs1 / rs2)
 }
 
-pub fn func_fsqrt_s(_state: &mut State, _insn: Insn) {
+pub fn func_fsqrt_s(_state: &mut State, _insn: &mut Insn) {
     func9!(sqrtf(rs1))
 }
 
-pub fn func_fmin_s(_state: &mut State, _insn: Insn) {
+pub fn func_fmin_s(_state: &mut State, _insn: &mut Insn) {
     func9!(if rs1 < rs2 { rs1 } else { rs2 })
 }
 
-pub fn func_fmax_s(_state: &mut State, _insn: Insn) {
+pub fn func_fmax_s(_state: &mut State, _insn: &mut Insn) {
     func9!(if rs1 > rs2 { rs1 } else { rs2 })
 }
 
@@ -467,31 +453,31 @@ macro_rules! func10 {
     };
 }
 
-pub fn func_fadd_d(_state: &mut State, _insn: Insn) {
+pub fn func_fadd_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 + rs2)
 }
 
-pub fn func_fsub_d(_state: &mut State, _insn: Insn) {
+pub fn func_fsub_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 - rs2)
 }
 
-pub fn func_fmul_d(_state: &mut State, _insn: Insn) {
+pub fn func_fmul_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 * rs2)
 }
 
-pub fn func_fdiv_d(_state: &mut State, _insn: Insn) {
+pub fn func_fdiv_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 / rs2)
 }
 
-pub fn func_fsqrt_d(_state: &mut State, _insn: Insn) {
+pub fn func_fsqrt_d(_state: &mut State, _insn: &mut Insn) {
     func10!(sqrtf(rs1))
 }
 
-pub fn func_fmin_d(_state: &mut State, _insn: Insn) {
+pub fn func_fmin_d(_state: &mut State, _insn: &mut Insn) {
     func10!(if rs1 < rs2 { rs1 } else { rs2 })
 }
 
-pub fn func_fmax_d(_state: &mut State, _insn: Insn) {
+pub fn func_fmax_d(_state: &mut State, _insn: &mut Insn) {
     func10!(if rs1 > rs2 { rs1 } else { rs2 })
 }
 
@@ -502,15 +488,15 @@ macro_rules! func11 {
     };
 }
 
-pub fn func_fsgnj_s(_state: &mut State, _insn: Insn) {
+pub fn func_fsgnj_s(_state: &mut State, _insn: &mut Insn) {
     func11!(false, false)
 }
 
-pub fn func_fsgnjn_s(_state: &mut State, _insn: Insn) {
+pub fn func_fsgnjn_s(_state: &mut State, _insn: &mut Insn) {
     func11!(true, false)
 }
 
-pub fn func_fsgnjx_s(_state: &mut State, _insn: Insn) {
+pub fn func_fsgnjx_s(_state: &mut State, _insn: &mut Insn) {
     func11!(false, true)
 }
 
@@ -521,63 +507,63 @@ macro_rules! func12 {
     };
 }
 
-pub fn func_fsgnj_d(_state: &mut State, _insn: Insn) {
+pub fn func_fsgnj_d(_state: &mut State, _insn: &mut Insn) {
     func11!(false, false)
 }
 
-pub fn func_fsgnjn_d(_state: &mut State, _insn: Insn) {
+pub fn func_fsgnjn_d(_state: &mut State, _insn: &mut Insn) {
     func11!(true, false)
 }
 
-pub fn func_fsgnjx_d(_state: &mut State, _insn: Insn) {
+pub fn func_fsgnjx_d(_state: &mut State, _insn: &mut Insn) {
     func11!(false, true)
 }
 
-pub fn func_fcvt_w_s(state: &mut State, insn: Insn) {
+pub fn func_fcvt_w_s(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].f as u64;
 }
 
-pub fn func_fcvt_wu_s(state: &mut State, insn: Insn) {
+pub fn func_fcvt_wu_s(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].f as u64;
 }
 
-pub fn func_fcvt_w_d(state: &mut State, insn: Insn) {
+pub fn func_fcvt_w_d(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].d as u64;
 }
 
-pub fn func_fcvt_wu_d(state: &mut State, insn: Insn) {
+pub fn func_fcvt_wu_d(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].d as u64;
 }
 
-pub fn func_fcvt_s_w(state: &mut State, insn: Insn) {
+pub fn func_fcvt_s_w(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_s_wu(state: &mut State, insn: Insn) {
+pub fn func_fcvt_s_wu(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_d_w(state: &mut State, insn: Insn) {
+pub fn func_fcvt_d_w(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].d = state.fp_regs[insn.rs1 as usize].d as f64;
 }
 
-pub fn func_fcvt_d_wu(state: &mut State, insn: Insn) {
+pub fn func_fcvt_d_wu(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].d = state.fp_regs[insn.rs1 as usize].d as f64;
 }
 
-pub fn func_fmv_x_w(state: &mut State, insn: Insn) {
+pub fn func_fmv_x_w(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].w as u64;
 }
 
-pub fn func_fmv_w_x(state: &mut State, insn: Insn) {
+pub fn func_fmv_w_x(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].w = state.gp_regs[insn.rs1 as usize] as u32;
 }
 
-pub fn func_fmv_x_d(state: &mut State, insn: Insn) {
+pub fn func_fmv_x_d(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].v as u64;
 }
 
-pub fn func_fmv_d_x(state: &mut State, insn: Insn) {
+pub fn func_fmv_d_x(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].v = state.gp_regs[insn.rs1 as usize] as u64;
 }
 
@@ -588,15 +574,15 @@ macro_rules! func13 {
     };
 }
 
-pub fn func_feq_s(_state: &mut State, _insn: Insn) {
+pub fn func_feq_s(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 == rs2)
 }
 
-pub fn func_flt_s(_state: &mut State, _insn: Insn) {
+pub fn func_flt_s(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 < rs2)
 }
 
-pub fn func_fle_s(_state: &mut State, _insn: Insn) {
+pub fn func_fle_s(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 <= rs2)
 }
 
@@ -607,67 +593,67 @@ macro_rules! func14 {
     };
 }
 
-pub fn func_feq_d(_state: &mut State, _insn: Insn) {
+pub fn func_feq_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 == rs2)
 }
 
-pub fn func_flt_d(_state: &mut State, _insn: Insn) {
+pub fn func_flt_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 < rs2)
 }
 
-pub fn func_fle_d(_state: &mut State, _insn: Insn) {
+pub fn func_fle_d(_state: &mut State, _insn: &mut Insn) {
     func10!(rs1 <= rs2)
 }
 
-pub fn func_fclass_s(state: &mut State, insn: Insn) {
+pub fn func_fclass_s(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = f32_classify(state.fp_regs[insn.rs1 as usize].f) as u64;
 }
 
-pub fn func_fclass_d(state: &mut State, insn: Insn) {
+pub fn func_fclass_d(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = f64_classify(state.fp_regs[insn.rs1 as usize].d) as u64;
 }
 
-pub fn func_fcvt_l_s(state: &mut State, insn: Insn) {
+pub fn func_fcvt_l_s(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].f as u64;
 }
 
-pub fn func_fcvt_lu_s(state: &mut State, insn: Insn) {
+pub fn func_fcvt_lu_s(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].f as u64;
 }
 
-pub fn func_fcvt_l_d(state: &mut State, insn: Insn) {
+pub fn func_fcvt_l_d(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].d as u64;
 }
 
-pub fn func_fcvt_lu_d(state: &mut State, insn: Insn) {
+pub fn func_fcvt_lu_d(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.fp_regs[insn.rs1 as usize].d as u64;
 }
 
-pub fn func_fcvt_s_l(state: &mut State, insn: Insn) {
+pub fn func_fcvt_s_l(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_s_lu(state: &mut State, insn: Insn) {
+pub fn func_fcvt_s_lu(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_d_l(state: &mut State, insn: Insn) {
+pub fn func_fcvt_d_l(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_d_lu(state: &mut State, insn: Insn) {
+pub fn func_fcvt_d_lu(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_s_d(state: &mut State, insn: Insn) {
+pub fn func_fcvt_s_d(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub fn func_fcvt_d_s(state: &mut State, insn: Insn) {
+pub fn func_fcvt_d_s(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
 }
 
-pub static FUNCS: [fn(&mut State, Insn); 133] = [
+pub static FUNCS: [fn(&mut State, &mut Insn); 133] = [
     func_lb,
     func_lh,
     func_lw,
@@ -810,7 +796,7 @@ pub fn exec_block_interp(mut state: State) {
         let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
         insn_decode(&mut insn, *(unsafe { data.as_ref().unwrap() }));
 
-        FUNCS.get(insn.i_type as usize).unwrap()(&mut state, insn);
+        FUNCS.get(insn.i_type as usize).unwrap()(&mut state, &mut insn);
         state.gp_regs[GpRegTypeT::Zero as usize] = 0;
 
         if insn.cont {

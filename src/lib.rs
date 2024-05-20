@@ -46,11 +46,6 @@ pub fn p_func3(typ: TokenStream) -> TokenStream {
     tt.into()
 }
 
-// #define FUNC(expr) \
-//     u64 rs1 = state->gp_regs[insn->rs1]; \
-//     u64 rs2 = state->gp_regs[insn->rs2]; \
-//     state->gp_regs[insn->rd] = (expr);   \
-
 #[proc_macro]
 pub fn p_func4(expr: TokenStream) -> TokenStream {
     let expr: syn::Expr = syn::parse(expr).unwrap();
@@ -60,5 +55,35 @@ pub fn p_func4(expr: TokenStream) -> TokenStream {
         state.gp_regs[insn.rd as usize] = (#expr) as u64;
     };
 
+    tt.into()
+}                                              
+
+#[proc_macro]
+pub fn p_func5(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.gp_regs[insn.rs1 as usize];
+        let rs2 = state.gp_regs[insn.rs2 as usize];
+        let target_addr = state.pc + (insn.imm as u64);
+        if (#expr) {
+            state.pc = target_addr;
+            state.reenter_pc = target_addr;
+            state.exit_reason = ExitReason::DirectBranch;
+            insn.cont = true;
+        }
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func6(_item: TokenStream) -> TokenStream {
+    let tt = quote! {
+        match (insn.csr) {
+            0 | 1 | 2 => {}
+            _ => unimplemented!()
+        }
+        state.gp_regs[insn.rd as usize] = 0;
+    };
     tt.into()
 }
