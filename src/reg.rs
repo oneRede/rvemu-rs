@@ -82,8 +82,8 @@ pub struct FpRegT {
 }
 
 impl FpRegT {
-    pub fn new() -> Self{
-        Self{
+    pub fn new() -> Self {
+        Self {
             v: 0,
             w: 0,
             d: 0f64,

@@ -2,12 +2,15 @@ use std::ptr;
 
 use crate::{
     decode::insn_decode,
-    interp_utils::{f32_classify, f64_classify, mulh, mulhsu, mulhu},
+    interp_utils::{f32_classify, f64_classify, fsgnj32, fsgnj64, mulh, mulhsu, mulhu},
     reg::GpRegTypeT,
     rvemu::{ExitReason, Insn, State},
     to_host,
 };
-use rvmu_rs::{p_func1, p_func2, p_func3, p_func4, p_func5, p_func6};
+use rvmu_rs::{
+    p_func1, p_func10, p_func11, p_func12, p_func13, p_func14, p_func2, p_func3, p_func4, p_func5,
+    p_func6, p_func7, p_func8, p_func9,
+};
 
 pub fn func_empty(_state: &mut State, _insn: &mut Insn) {}
 
@@ -37,13 +40,6 @@ pub fn func_lhu(state: &mut State, insn: &mut Insn) {
 
 pub fn func_lwu(state: &mut State, insn: &mut Insn) {
     p_func1!(u32);
-}
-
-#[macro_export]
-macro_rules! func1 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
 }
 
 pub fn func_addi(state: &mut State, insn: &mut Insn) {
@@ -101,13 +97,6 @@ pub fn func_sraiw(state: &mut State, insn: &mut Insn) {
 pub fn func_auipc(state: &mut State, insn: &mut Insn) {
     let val = state.pc + insn.imm as u64;
     state.gp_regs[insn.rd as usize] = val;
-}
-
-#[macro_export]
-macro_rules! func2 {
-    ($ty:ty) => {
-        unimplemented!()
-    };
 }
 
 pub fn func_sb(state: &mut State, insn: &mut Insn) {
@@ -317,27 +306,27 @@ pub fn func_ecall(state: &mut State, _insn: &mut Insn) {
 }
 
 pub fn func_csrrw(state: &mut State, insn: &mut Insn) {
-    p_func6!(0);
+    p_func6!();
 }
 
 pub fn func_csrrs(state: &mut State, insn: &mut Insn) {
-    p_func6!(0);
+    p_func6!();
 }
 
 pub fn func_csrrc(state: &mut State, insn: &mut Insn) {
-    p_func6!(0);
+    p_func6!();
 }
 
 pub fn func_csrrwi(state: &mut State, insn: &mut Insn) {
-    p_func6!(0);
+    p_func6!();
 }
 
 pub fn func_csrrsi(state: &mut State, insn: &mut Insn) {
-    p_func6!(0);
+    p_func6!();
 }
 
 pub fn func_csrrci(state: &mut State, insn: &mut Insn) {
-    p_func6!(0);
+    p_func6!();
 }
 
 pub fn func_flw(state: &mut State, insn: &mut Insn) {
@@ -350,173 +339,124 @@ pub fn func_fld(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].v = to_host!(addr);
 }
 
-#[macro_export]
-macro_rules! func6 {
-    ($ty:ty) => {
-        unimplemented!()
-    };
+pub fn func_fsw(state: &mut State, insn: &mut Insn) {
+    p_func3!(u32);
 }
 
-pub fn func_fsw(_state: &mut State, _insn: &mut Insn) {
-    func6!(unimplemented!())
+pub fn func_fsd(state: &mut State, insn: &mut Insn) {
+    p_func3!(u32);
 }
 
-pub fn func_fsd(_state: &mut State, _insn: &mut Insn) {
-    func6!(unimplemented!())
+pub fn func_fmadd_s(state: &mut State, insn: &mut Insn) {
+    p_func7!(rs1 * rs2 + rs3);
 }
 
-#[macro_export]
-macro_rules! func7 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_fmsub_s(state: &mut State, insn: &mut Insn) {
+    p_func7!(rs1 * rs2 - rs3);
 }
 
-pub fn func_fmadd_s(_state: &mut State, _insn: &mut Insn) {
-    func7!(rs1 * rs2 + rs3)
+pub fn func_fnmsub_s(state: &mut State, insn: &mut Insn) {
+    p_func7!(-(rs1 * rs2) + rs3);
 }
 
-pub fn func_fmsub_s(_state: &mut State, _insn: &mut Insn) {
-    func7!(rs1 * rs2 - rs3)
+pub fn func_fnmadd_s(state: &mut State, insn: &mut Insn) {
+    p_func7!(-(rs1 * rs2) - rs3);
 }
 
-pub fn func_fnmsub_s(_state: &mut State, _insn: &mut Insn) {
-    func7!(-(rs1 * rs2) + rs3)
+pub fn func_fmadd_d(state: &mut State, insn: &mut Insn) {
+    p_func8!(rs1 * rs2 + rs3);
 }
 
-pub fn func_fnmadd_s(_state: &mut State, _insn: &mut Insn) {
-    func7!(-(rs1 * rs2) - rs3)
+pub fn func_fmsub_d(state: &mut State, insn: &mut Insn) {
+    p_func8!(rs1 * rs2 - rs3);
 }
 
-#[macro_export]
-macro_rules! func8 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_fnmsub_d(state: &mut State, insn: &mut Insn) {
+    p_func8!(-(rs1 * rs2) + rs3);
 }
 
-pub fn func_fmadd_d(_state: &mut State, _insn: &mut Insn) {
-    func8!(rs1 * rs2 + rs3)
+pub fn func_fnmadd_d(state: &mut State, insn: &mut Insn) {
+    p_func8!(-(rs1 * rs2) - rs3);
 }
 
-pub fn func_fmsub_d(_state: &mut State, _insn: &mut Insn) {
-    func8!(rs1 * rs2 - rs3)
+pub fn func_fadd_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(rs1 + rs2);
 }
 
-pub fn func_fnmsub_d(_state: &mut State, _insn: &mut Insn) {
-    func8!(-(rs1 * rs2) + rs3)
+pub fn func_fsub_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(rs1 - rs2);
 }
 
-pub fn func_fnmadd_d(_state: &mut State, _insn: &mut Insn) {
-    func8!(-(rs1 * rs2) - rs3)
+pub fn func_fmul_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(rs1 * rs2);
 }
 
-#[macro_export]
-macro_rules! func9 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_fdiv_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(rs1 / rs2);
 }
 
-pub fn func_fadd_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(rs1 + rs2)
+pub fn func_fsqrt_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(f32::sqrt(rs1));
 }
 
-pub fn func_fsub_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(rs1 - rs2)
+pub fn func_fmin_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(if rs1 < rs2 { rs1 } else { rs2 });
 }
 
-pub fn func_fmul_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(rs1 * rs2)
+pub fn func_fmax_s(state: &mut State, insn: &mut Insn) {
+    p_func9!(if rs1 > rs2 { rs1 } else { rs2 });
 }
 
-pub fn func_fdiv_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(rs1 / rs2)
+pub fn func_fadd_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(rs1 + rs2);
 }
 
-pub fn func_fsqrt_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(sqrtf(rs1))
+pub fn func_fsub_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(rs1 - rs2);
 }
 
-pub fn func_fmin_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(if rs1 < rs2 { rs1 } else { rs2 })
+pub fn func_fmul_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(rs1 * rs2);
 }
 
-pub fn func_fmax_s(_state: &mut State, _insn: &mut Insn) {
-    func9!(if rs1 > rs2 { rs1 } else { rs2 })
+pub fn func_fdiv_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(rs1 / rs2);
 }
 
-#[macro_export]
-macro_rules! func10 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_fsqrt_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(f64::sqrt(rs1));
 }
 
-pub fn func_fadd_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 + rs2)
+pub fn func_fmin_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(if rs1 < rs2 { rs1 } else { rs2 });
 }
 
-pub fn func_fsub_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 - rs2)
+pub fn func_fmax_d(state: &mut State, insn: &mut Insn) {
+    p_func10!(if rs1 > rs2 { rs1 } else { rs2 });
 }
 
-pub fn func_fmul_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 * rs2)
+pub fn func_fsgnj_s(state: &mut State, insn: &mut Insn) {
+    p_func11!([false, false]);
 }
 
-pub fn func_fdiv_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 / rs2)
+pub fn func_fsgnjn_s(state: &mut State, insn: &mut Insn) {
+    p_func11!([true, false]);
 }
 
-pub fn func_fsqrt_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(sqrtf(rs1))
+pub fn func_fsgnjx_s(state: &mut State, insn: &mut Insn) {
+    p_func11!([false, true]);
 }
 
-pub fn func_fmin_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(if rs1 < rs2 { rs1 } else { rs2 })
+pub fn func_fsgnj_d(state: &mut State, insn: &mut Insn) {
+    p_func12!([false, false]);
 }
 
-pub fn func_fmax_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(if rs1 > rs2 { rs1 } else { rs2 })
+pub fn func_fsgnjn_d(state: &mut State, insn: &mut Insn) {
+    p_func12!([true, false]);
 }
 
-#[macro_export]
-macro_rules! func11 {
-    ($n:expr, $x:expr) => {
-        unimplemented!()
-    };
-}
-
-pub fn func_fsgnj_s(_state: &mut State, _insn: &mut Insn) {
-    func11!(false, false)
-}
-
-pub fn func_fsgnjn_s(_state: &mut State, _insn: &mut Insn) {
-    func11!(true, false)
-}
-
-pub fn func_fsgnjx_s(_state: &mut State, _insn: &mut Insn) {
-    func11!(false, true)
-}
-
-#[macro_export]
-macro_rules! func12 {
-    ($n:expr, $x:expr) => {
-        unimplemented!()
-    };
-}
-
-pub fn func_fsgnj_d(_state: &mut State, _insn: &mut Insn) {
-    func11!(false, false)
-}
-
-pub fn func_fsgnjn_d(_state: &mut State, _insn: &mut Insn) {
-    func11!(true, false)
-}
-
-pub fn func_fsgnjx_d(_state: &mut State, _insn: &mut Insn) {
-    func11!(false, true)
+pub fn func_fsgnjx_d(state: &mut State, insn: &mut Insn) {
+    p_func12!([false, true]);
 }
 
 pub fn func_fcvt_w_s(state: &mut State, insn: &mut Insn) {
@@ -567,42 +507,28 @@ pub fn func_fmv_d_x(state: &mut State, insn: &mut Insn) {
     state.fp_regs[insn.rd as usize].v = state.gp_regs[insn.rs1 as usize] as u64;
 }
 
-#[macro_export]
-macro_rules! func13 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_feq_s(state: &mut State, insn: &mut Insn) {
+    p_func13!(rs1 == rs2);
 }
 
-pub fn func_feq_s(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 == rs2)
+pub fn func_flt_s(state: &mut State, insn: &mut Insn) {
+    p_func13!(rs1 < rs2);
 }
 
-pub fn func_flt_s(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 < rs2)
+pub fn func_fle_s(state: &mut State, insn: &mut Insn) {
+    p_func13!(rs1 <= rs2);
 }
 
-pub fn func_fle_s(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 <= rs2)
+pub fn func_feq_d(state: &mut State, insn: &mut Insn) {
+    p_func14!(rs1 == rs2);
 }
 
-#[macro_export]
-macro_rules! func14 {
-    ($expr:expr) => {
-        unimplemented!()
-    };
+pub fn func_flt_d(state: &mut State, insn: &mut Insn) {
+    p_func14!(rs1 < rs2);
 }
 
-pub fn func_feq_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 == rs2)
-}
-
-pub fn func_flt_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 < rs2)
-}
-
-pub fn func_fle_d(_state: &mut State, _insn: &mut Insn) {
-    func10!(rs1 <= rs2)
+pub fn func_fle_d(state: &mut State, insn: &mut Insn) {
+    p_func14!(rs1 <= rs2);
 }
 
 pub fn func_fclass_s(state: &mut State, insn: &mut Insn) {

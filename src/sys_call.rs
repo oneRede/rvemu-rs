@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use libc::close;
 
 use crate::{
@@ -87,14 +89,12 @@ pub fn sys_unimplemented(m: Machine) {
 }
 
 #[allow(dead_code)]
-pub fn sys_exit(_m: Machine) -> u64{
+pub fn sys_exit(_m: Machine) -> u64 {
     get!(GpRegTypeT::A0, code);
-    // TODO: exit implement
-    // exit(0)
-    0
+    exit(0);
 }
 
-pub fn sys_close(_m: Machine) -> u64{
+pub fn sys_close(_m: Machine) -> u64 {
     get!(GpRegTypeT::A0, fd);
     let fd = 3;
     if fd > 2 {

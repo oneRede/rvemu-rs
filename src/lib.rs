@@ -56,7 +56,7 @@ pub fn p_func4(expr: TokenStream) -> TokenStream {
     };
 
     tt.into()
-}                                              
+}
 
 #[proc_macro]
 pub fn p_func5(expr: TokenStream) -> TokenStream {
@@ -85,5 +85,113 @@ pub fn p_func6(_item: TokenStream) -> TokenStream {
         }
         state.gp_regs[insn.rd as usize] = 0;
     };
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func7(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.fp_regs[insn.rs1 as usize].f;
+        let rs2 = state.fp_regs[insn.rs2 as usize].f;
+        let rs3 = state.fp_regs[insn.rs3 as usize].f;
+        state.fp_regs[insn.rd as usize].f = (#expr) as f32;
+
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func8(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.fp_regs[insn.rs1 as usize].d;
+        let rs2 = state.fp_regs[insn.rs2 as usize].d;
+        let rs3 = state.fp_regs[insn.rs3 as usize].d;
+        state.fp_regs[insn.rd as usize].d = (#expr);
+
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func9(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.fp_regs[insn.rs1 as usize].f;
+        let rs2 = state.fp_regs[insn.rs2 as usize].f;
+        state.fp_regs[insn.rd as usize].f = (#expr) as f32;
+
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func10(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.fp_regs[insn.rs1 as usize].d;
+        let rs2 = state.fp_regs[insn.rs2 as usize].d;
+        state.fp_regs[insn.rd as usize].d = (#expr);
+
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func11(array: TokenStream) -> TokenStream {
+    let array: syn::ExprArray = syn::parse(array).unwrap();
+
+    let tt = quote! {
+        let arr:[bool;2] = #array;
+        let rs1 = state.fp_regs[insn.rs1 as usize].w;
+        let rs2 = state.fp_regs[insn.rs2 as usize].w;
+        state.fp_regs[insn.rd as usize].v = (fsgnj32(rs1, rs2, arr[0], arr[1]) as u64 | ((-1i64 << 32)) as u64);
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func12(array: TokenStream) -> TokenStream {
+    let array: syn::ExprArray = syn::parse(array).unwrap();
+
+    let tt = quote! {
+        let arr:[bool;2] = #array;
+        let rs1 = state.fp_regs[insn.rs1 as usize].v;
+        let rs2 = state.fp_regs[insn.rs2 as usize].v;
+        state.fp_regs[insn.rd as usize].v = fsgnj64(rs1, rs2, arr[0], arr[1]);
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func13(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.fp_regs[insn.rs1 as usize].f;
+        let rs2 = state.fp_regs[insn.rs2 as usize].f;
+        state.gp_regs[insn.rd as usize] = (#expr) as u64;
+
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn p_func14(expr: TokenStream) -> TokenStream {
+    let expr: syn::Expr = syn::parse(expr).unwrap();
+    let tt = quote! {
+        let rs1 = state.fp_regs[insn.rs1 as usize].d;
+        let rs2 = state.fp_regs[insn.rs2 as usize].d;
+        state.gp_regs[insn.rd as usize] = (#expr) as u64;
+
+    };
+
     tt.into()
 }
