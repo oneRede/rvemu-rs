@@ -1,11 +1,13 @@
-use std::process::exit;
+use std::{os::raw::c_void, process::exit, ptr};
 
-use libc::close;
+use libc::{close, gettimeofday, stat, timeval, timezone};
 
 use crate::{
     fatal,
-    reg::GpRegTypeT::{A0, A7},
+    mmu::mmu_alloc,
+    reg::GpRegTypeT::{A0, A1, A2, A7},
     rvemu::{machine_get_gp_reg, Machine},
+    to_host,
 };
 
 pub const SYS_EXIT: usize = 93;
@@ -79,7 +81,14 @@ pub const SYS_TIME: usize = 1062;
 #[macro_export]
 macro_rules! get {
     ($reg:tt, $name:ident, $m:ident) => {
-        let $name = machine_get_gp_reg($m, $reg as i32);
+        let $name: u64 = machine_get_gp_reg($m, $reg as i32);
+    };
+}
+
+#[macro_export]
+macro_rules! get_mut {
+    ($reg:tt, $name:ident, $m:ident) => {
+        let mut $name: u64 = machine_get_gp_reg(*$m, $reg as i32);
     };
 }
 
@@ -115,4 +124,49 @@ pub fn sys_close(m: Machine) -> u64 {
         return unsafe { close(0) as u64 };
     }
     return 0;
+}
+
+pub fn sys_write(m: Machine) -> u64 {
+    get!(A0, fd, m);
+    get!(A1, ptr, m);
+    get!(A2, len, m);
+    let pp: *mut u8 = ptr::null_mut();
+    let ptr = unsafe { pp.add(to_host!(ptr) as usize) } as *const c_void;
+    return unsafe { libc::write(fd as i32, ptr, len as usize) } as u64;
+}
+
+pub fn sys_fstat(m: Machine) -> u64 {
+    get!(A0, fd, m);
+    get!(A1, addr, m);
+
+    let ptr: *mut u8 = ptr::null_mut();
+    let ptr: *mut stat = unsafe { ptr.add(to_host!(addr) as usize) } as *mut stat;
+
+    return unsafe { libc::fstat(fd as i32, ptr) as u64 };
+}
+
+pub fn sys_gettimeofday(m: Machine) -> u64 {
+    get!(A0, tv_addr, m);
+    get!(A1, tz_addr, m);
+
+    let ptr: *mut u8 = ptr::null_mut();
+    let tv = unsafe { ptr.add(tv_addr as usize) } as *mut timeval;
+    let mut tz: *mut timezone = ptr::null_mut();
+    if tz_addr != 0 {
+        let pp: *mut u8 = ptr::null_mut();
+        let pp = unsafe { pp.add(to_host!(tv_addr) as usize) } as *mut timezone;
+        tz = pp;
+    }
+    return unsafe { gettimeofday(tv, tz as *mut c_void) } as u64;
+}
+
+pub fn sys_brk(m: &mut Machine) -> u64 {
+    get_mut!(A0, addr, m);
+    if addr == 0 {
+        addr = m.mmu.alloc;
+    }
+    assert!(addr >= m.mmu.base);
+    let incr = (addr - m.mmu.alloc) as i64;
+    mmu_alloc(&mut m.mmu, incr);
+    return addr;
 }
