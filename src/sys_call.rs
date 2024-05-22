@@ -76,8 +76,6 @@ pub const SYS_STAT: usize = 1038;
 pub const SYS_LSTAT: usize = 1039;
 pub const SYS_TIME: usize = 1062;
 
-// #define GET(reg, name) u64 name = machine_get_gp_reg(m, reg);
-
 #[macro_export]
 macro_rules! get {
     ($reg:tt, $name:ident, $m:ident) => {
