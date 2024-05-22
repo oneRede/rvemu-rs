@@ -4,7 +4,7 @@ use libc::close;
 
 use crate::{
     fatal,
-    reg::GpRegTypeT,
+    reg::GpRegTypeT::{A0, A7},
     rvemu::{machine_get_gp_reg, Machine},
 };
 
@@ -74,29 +74,43 @@ pub const SYS_STAT: usize = 1038;
 pub const SYS_LSTAT: usize = 1039;
 pub const SYS_TIME: usize = 1062;
 
+// #define GET(reg, name) u64 name = machine_get_gp_reg(m, reg);
+
 #[macro_export]
 macro_rules! get {
-    ($reg:expr, $name:ident) => {
-        // unimplement
+    ($reg:tt, $name:ident, $m:ident) => {
+        let $name = machine_get_gp_reg($m, $reg as i32);
+    };
+}
+
+#[macro_export]
+macro_rules! vec {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
     };
 }
 
 pub fn sys_unimplemented(m: Machine) {
     fatal!(format!(
         "unimplemented syscall: {}",
-        machine_get_gp_reg(m, GpRegTypeT::A7 as i32)
+        machine_get_gp_reg(m, A7 as i32)
     ));
 }
 
 #[allow(dead_code)]
-pub fn sys_exit(_m: Machine) -> u64 {
-    get!(GpRegTypeT::A0, code);
-    exit(0);
+pub fn sys_exit(m: Machine) -> u64 {
+    get!(A0, code, m);
+    exit(code as i32);
 }
 
-pub fn sys_close(_m: Machine) -> u64 {
-    get!(GpRegTypeT::A0, fd);
-    let fd = 3;
+pub fn sys_close(m: Machine) -> u64 {
+    get!(A0, fd, m);
     if fd > 2 {
         return unsafe { close(0) as u64 };
     }
