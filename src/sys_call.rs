@@ -9,7 +9,7 @@ use rvmu_rs::rewrite_flag;
 use crate::{
     fatal,
     mmu::mmu_alloc,
-    reg::GpRegTypeT::{A0, A1, A2, A3, A7},
+    reg::GpRegTypeT::{A0, A1, A2, A7},
     rvemu::{machine_get_gp_reg, Machine},
     to_host,
 };
