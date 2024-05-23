@@ -90,7 +90,6 @@ macro_rules! get {
 #[macro_export]
 macro_rules! get_mut {
     ($reg:tt, $name:ident, $m:ident) => {
-        
         let mut $name: u64 = machine_get_gp_reg(*$m, $reg as i32);
     };
 }
@@ -122,7 +121,7 @@ pub fn sys_exit(m: &mut Machine) -> u64 {
     exit(code as i32);
 }
 
-pub fn sys_close(m: &mut  Machine) -> u64 {
+pub fn sys_close(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     if fd > 2 {
         return unsafe { close(0) as u64 };
@@ -215,7 +214,7 @@ pub fn sys_open(m: &mut Machine) -> u64 {
     return ret;
 }
 
-pub fn sys_lseek(m:&mut  Machine) -> u64 {
+pub fn sys_lseek(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     get!(A1, offset, m);
     get!(A2, when_ce, m);
@@ -223,7 +222,7 @@ pub fn sys_lseek(m:&mut  Machine) -> u64 {
     return unsafe { lseek(fd as i32, offset as i64, when_ce as i32) as u64 };
 }
 
-pub fn sys_read(m:&mut  Machine) -> u64 {
+pub fn sys_read(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     get!(A1, buf_ptr, m);
     get!(A2, count, m);
@@ -278,3 +277,27 @@ pub const SYSCALL_TABLE: [fn(&mut Machine) -> u64; 42] = [
     sys_unimplemented,
     sys_unimplemented,
 ];
+
+pub const OLD_SYSCALL_TABLE: [fn(&mut Machine) -> u64; 8] = [
+    sys_open,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+];
+
+pub fn do_syscall(m: &mut Machine, n: u64) -> u64 {
+    let mut f: Option<fn(&mut Machine) -> u64> = None;
+    if n < SYSCALL_TABLE.len() as u64 {
+        f = Some(SYSCALL_TABLE[n as usize])
+    } else if (n as usize - OLD_SYSCALL_THRESHOLD) < OLD_SYSCALL_TABLE.len() {
+        f = Some(OLD_SYSCALL_TABLE[n as usize - OLD_SYSCALL_THRESHOLD])
+    }
+    if f.is_none() {
+        fatal!("unknown syscall");
+    }
+    return f.unwrap()(m);
+}
