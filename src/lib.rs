@@ -1,5 +1,7 @@
 #![crate_type = "proc-macro"]
 extern crate proc_macro;
+use std::str::FromStr;
+
 use proc_macro::TokenStream;
 use quote::quote;
 
@@ -190,6 +192,22 @@ pub fn p_func14(expr: TokenStream) -> TokenStream {
         let rs1 = state.fp_regs[insn.rs1 as usize].d;
         let rs2 = state.fp_regs[insn.rs2 as usize].d;
         state.gp_regs[insn.rd as usize] = (#expr) as u64;
+
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn rewrite_flag(flag: TokenStream) -> TokenStream {
+    let st: &str = &("NEWLIB_".to_string() + &flag.to_string());
+    let i_flag: syn::Ident = syn::parse(flag).unwrap();
+    let st: TokenStream = TokenStream::from_str(st).unwrap();
+    let ident: syn::Ident = syn::parse(st).unwrap(); 
+    let tt = quote! {
+        if (flags & #ident) != 0 {
+            host_flags |= #i_flag
+        }
 
     };
 

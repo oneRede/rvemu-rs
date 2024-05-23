@@ -1,11 +1,15 @@
 use std::{os::raw::c_void, process::exit, ptr};
 
-use libc::{close, gettimeofday, stat, timeval, timezone};
+use libc::{
+    c_char, close, gettimeofday, lseek, open, openat, read, stat, timeval, timezone, O_APPEND,
+    O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY,
+};
+use rvmu_rs::rewrite_flag;
 
 use crate::{
     fatal,
     mmu::mmu_alloc,
-    reg::GpRegTypeT::{A0, A1, A2, A7},
+    reg::GpRegTypeT::{A0, A1, A2, A3, A7},
     rvemu::{machine_get_gp_reg, Machine},
     to_host,
 };
@@ -79,13 +83,14 @@ pub const SYS_TIME: usize = 1062;
 #[macro_export]
 macro_rules! get {
     ($reg:tt, $name:ident, $m:ident) => {
-        let $name: u64 = machine_get_gp_reg($m, $reg as i32);
+        let $name: u64 = machine_get_gp_reg(*$m, $reg as i32);
     };
 }
 
 #[macro_export]
 macro_rules! get_mut {
     ($reg:tt, $name:ident, $m:ident) => {
+        
         let mut $name: u64 = machine_get_gp_reg(*$m, $reg as i32);
     };
 }
@@ -103,20 +108,21 @@ macro_rules! vec {
     };
 }
 
-pub fn sys_unimplemented(m: Machine) {
+pub fn sys_unimplemented(m: &mut Machine) -> u64 {
     fatal!(format!(
         "unimplemented syscall: {}",
-        machine_get_gp_reg(m, A7 as i32)
+        machine_get_gp_reg(*m, A7 as i32)
     ));
+    0
 }
 
 #[allow(dead_code)]
-pub fn sys_exit(m: Machine) -> u64 {
+pub fn sys_exit(m: &mut Machine) -> u64 {
     get!(A0, code, m);
     exit(code as i32);
 }
 
-pub fn sys_close(m: Machine) -> u64 {
+pub fn sys_close(m: &mut  Machine) -> u64 {
     get!(A0, fd, m);
     if fd > 2 {
         return unsafe { close(0) as u64 };
@@ -124,7 +130,7 @@ pub fn sys_close(m: Machine) -> u64 {
     return 0;
 }
 
-pub fn sys_write(m: Machine) -> u64 {
+pub fn sys_write(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     get!(A1, ptr, m);
     get!(A2, len, m);
@@ -133,7 +139,7 @@ pub fn sys_write(m: Machine) -> u64 {
     return unsafe { libc::write(fd as i32, ptr, len as usize) } as u64;
 }
 
-pub fn sys_fstat(m: Machine) -> u64 {
+pub fn sys_fstat(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     get!(A1, addr, m);
 
@@ -143,7 +149,7 @@ pub fn sys_fstat(m: Machine) -> u64 {
     return unsafe { libc::fstat(fd as i32, ptr) as u64 };
 }
 
-pub fn sys_gettimeofday(m: Machine) -> u64 {
+pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
     get!(A0, tv_addr, m);
     get!(A1, tz_addr, m);
 
@@ -168,3 +174,107 @@ pub fn sys_brk(m: &mut Machine) -> u64 {
     mmu_alloc(&mut m.mmu, incr);
     return addr;
 }
+
+pub const NEWLIB_O_RDONLY: i32 = 0x0;
+pub const NEWLIB_O_WRONLY: i32 = 0x1;
+pub const NEWLIB_O_RDWR: i32 = 0x2;
+pub const NEWLIB_O_APPEND: i32 = 0x8;
+pub const NEWLIB_O_CREAT: i32 = 0x200;
+pub const NEWLIB_O_TRUNC: i32 = 0x400;
+pub const NEWLIB_O_EXCL: i32 = 0x800;
+
+pub fn convert_flags(flags: i32) -> i32 {
+    let mut host_flags: i32 = 0;
+
+    rewrite_flag!(O_RDONLY);
+    rewrite_flag!(O_WRONLY);
+    rewrite_flag!(O_RDWR);
+    rewrite_flag!(O_APPEND);
+    rewrite_flag!(O_CREAT);
+    rewrite_flag!(O_TRUNC);
+    rewrite_flag!(O_EXCL);
+
+    return host_flags;
+}
+
+pub fn sys_openat(m: &mut Machine) -> u64 {
+    get!(A0, dir_fd, m);
+    get!(A1, name_ptr, m);
+    get!(A2, flags, m);
+    let ptr: *mut char = ptr::null_mut();
+    let ptr = unsafe { ptr.add(to_host!(name_ptr) as usize) } as *const c_char;
+    return unsafe { openat(dir_fd as i32, ptr, flags as i32) } as u64;
+}
+
+pub fn sys_open(m: &mut Machine) -> u64 {
+    get!(A0, name_ptr, m);
+    get!(A1, flags, m);
+    let ptr: *mut char = ptr::null_mut();
+    let ptr = unsafe { ptr.add(to_host!(name_ptr) as usize) } as *const c_char;
+    let ret = unsafe { open(ptr, flags as i32) } as u64;
+    return ret;
+}
+
+pub fn sys_lseek(m:&mut  Machine) -> u64 {
+    get!(A0, fd, m);
+    get!(A1, offset, m);
+    get!(A2, when_ce, m);
+
+    return unsafe { lseek(fd as i32, offset as i64, when_ce as i32) as u64 };
+}
+
+pub fn sys_read(m:&mut  Machine) -> u64 {
+    get!(A0, fd, m);
+    get!(A1, buf_ptr, m);
+    get!(A2, count, m);
+
+    let ptr: *mut char = ptr::null_mut();
+    let ptr = unsafe { ptr.add(to_host!(buf_ptr) as usize) } as *mut c_void;
+
+    return unsafe { read(fd as i32, ptr, count as usize) as u64 };
+}
+
+pub const SYSCALL_TABLE: [fn(&mut Machine) -> u64; 42] = [
+    sys_exit,
+    sys_exit,
+    sys_read,
+    sys_unimplemented,
+    sys_write,
+    sys_openat,
+    sys_close,
+    sys_fstat,
+    sys_unimplemented,
+    sys_lseek,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_brk,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_gettimeofday,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+    sys_unimplemented,
+];
