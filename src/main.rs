@@ -1,7 +1,10 @@
 use std::env;
 
 use crate::{
-    machine::{machine_load_program, machine_step}, reg::GpRegTypeT, rvemu::{machine_get_gp_reg, machine_set_gp_reg, ExitReason, Machine}, sys_call::do_syscall
+    machine::{machine_load_program, machine_step},
+    reg::GpRegTypeT,
+    rvemu::{machine_get_gp_reg, machine_set_gp_reg, ExitReason, Machine},
+    sys_call::do_syscall,
 };
 
 pub mod decode;
@@ -20,10 +23,10 @@ fn main() {
 
     let mut machine = Machine::new();
     machine_load_program(&mut machine, &args[1]);
-    machine_step(machine);
+    machine_step(&mut machine);
 
     loop {
-        let reason = machine_step(machine);
+        let reason = machine_step(&mut machine);
         assert!(reason == ExitReason::Ecall);
         let sys_call = machine_get_gp_reg(machine, GpRegTypeT::A7 as i32);
         let ret = do_syscall(&mut machine, sys_call);

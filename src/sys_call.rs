@@ -160,7 +160,7 @@ pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
         let pp = unsafe { pp.add(to_host!(tv_addr) as usize) } as *mut timezone;
         tz = pp;
     }
-    return unsafe { gettimeofday(tv, tz as *mut c_void) } as u64;
+    return unsafe { gettimeofday(tv, tz as *mut timezone) } as u64;
 }
 
 pub fn sys_brk(m: &mut Machine) -> u64 {

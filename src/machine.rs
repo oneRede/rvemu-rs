@@ -7,9 +7,9 @@ use crate::{
     rvemu::{mmu_write, ExitReason, Machine},
 };
 
-pub fn machine_step(m: Machine) -> ExitReason {
+pub fn machine_step(m: &mut Machine) -> ExitReason {
     loop {
-        exec_block_interp(m.state);
+        exec_block_interp(&mut m.state);
 
         if m.state.exit_reason == ExitReason::IndirectBranch
             || m.state.exit_reason == ExitReason::DirectBranch
