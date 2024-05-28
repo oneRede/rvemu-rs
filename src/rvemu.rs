@@ -1,4 +1,4 @@
-use crate::reg::{FpRegT, FpRegTypeT, GpRegTypeT};
+use crate::{reg::{FpRegT, FpRegTypeT, GpRegTypeT}, to_host};
 use std::ptr;
 
 #[derive(Clone, Copy)]
@@ -247,7 +247,7 @@ macro_rules! fatal {
 
 pub fn mmu_write(addr: u64, data: *const u8, len: usize) {
     let n_ptr: *mut u8 = ptr::null_mut();
-    let n_ptr = unsafe { n_ptr.add(addr as usize) };
+    let n_ptr = unsafe { n_ptr.add(to_host!(addr) as usize) };
     unsafe { n_ptr.copy_from(data, len) }
 }
 
