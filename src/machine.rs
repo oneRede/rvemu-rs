@@ -1,4 +1,4 @@
-use std::{fs::OpenOptions, os::fd::AsRawFd, ptr};
+use std::{fs::OpenOptions, os::fd::AsRawFd};
 
 use crate::{
     interp::exec_block_interp,
