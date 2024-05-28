@@ -4,7 +4,7 @@ use libc::{
     c_char, close, gettimeofday, lseek, open, openat, read, stat, timeval, timezone, O_APPEND,
     O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY,
 };
-use rvmu_rs::rewrite_flag;
+use rvemu_rs::rewrite_flag;
 
 use crate::{
     fatal,

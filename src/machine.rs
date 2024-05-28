@@ -36,7 +36,7 @@ pub fn machine_load_program(m: &mut Machine, prog: &str) {
     m.state.pc = m.mmu.entry;
 }
 
-pub fn machine_setup(m: &mut Machine, argc: i32, argv: &[&str]) {
+pub fn machine_setup(m: &mut Machine, argc: i32, argv: Vec<String>) {
     let sz = 32 * 1024 * 1024;
     let stack = mmu_alloc(&mut m.mmu, sz);
     m.state.gp_regs[GpRegTypeT::Sp as usize] = stack + sz as u64;

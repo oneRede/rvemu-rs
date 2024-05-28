@@ -66,14 +66,14 @@ macro_rules! array_size {
 #[macro_export]
 macro_rules! to_host {
     ($addr:expr) => {
-        $addr + 0x088800000000u64
+        $addr + 0x018800000000u64
     };
 }
 
 #[macro_export]
 macro_rules! to_guest {
     ($addr:expr) => {
-        $addr - 0x088800000000u64
+        $addr - 0x018800000000u64
     };
 }
 
@@ -121,4 +121,10 @@ impl Phdr {
             p_align: 0,
         }
     }
+}
+
+#[test]
+fn test_to_host() {
+    let data = 123456;
+    println!("{:?}", to_host!(data))
 }

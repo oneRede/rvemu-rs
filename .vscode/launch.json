@@ -7,34 +7,34 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'rvmu-rs'",
+            "name": "Debug executable 'rvemu-rs'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rvmu-rs",
-                    "--package=rvmu-rs"
+                    "--bin=rvemu-rs",
+                    "--package=rvemu-rs"
                 ],
                 "filter": {
-                    "name": "rvmu-rs",
+                    "name": "rvemu-rs",
                     "kind": "bin"
                 }
             },
-            "args": ["/Users/rede/git/rvemu-rs/test/a.out"],
+            "args": ["/code/rvemu-rs/test/a.out"],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'rvmu-rs'",
+            "name": "Debug unit tests in executable 'rvemu-rs'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=rvmu-rs",
-                    "--package=rvmu-rs"
+                    "--bin=rvemu-rs",
+                    "--package=rvemu-rs"
                 ],
                 "filter": {
-                    "name": "rvmu-rs",
+                    "name": "rvemu-rs",
                     "kind": "bin"
                 }
             },

@@ -21,7 +21,7 @@ macro_rules! op_code {
 #[macro_export]
 macro_rules! rd {
     ($data:ident) => {
-        (($data >> 7) & 0x1f)
+        (((($data) >> 7) as i8) & 0x1f)
     };
 }
 
@@ -100,16 +100,17 @@ pub fn insn_itype_read(data: u32) -> Insn {
 
 #[inline]
 pub fn insn_jtype_read(data: u32) -> Insn {
-    let imm20 = data >> 31 & 0x1;
-    let imm101 = data >> 21 & 0x3ff;
-    let imm11 = data >> 20 & 0x1;
-    let imm1912 = data >> 21 & 0xff;
+    let imm20 = (data >> 31) & 0x1;
+    let imm101 = (data >> 21) & 0x3ff;
+    let imm11 = (data >> 20) & 0x1;
+    let imm1912 = (data >> 12) & 0xff;
 
     let mut imm: i32 = ((imm20 << 20) | (imm1912 << 12) | (imm11 << 11) | (imm101 << 1)) as i32;
     imm = (imm << 11) >> 11;
 
     let mut insn = Insn::new();
     insn.imm = imm;
+    insn.rd = rd!(data);
 
     return insn;
 }
@@ -252,7 +253,7 @@ pub fn insn_catype_read(data: u16) -> Insn {
 #[inline]
 pub fn insn_crtype_read(data: u16) -> Insn {
     let mut insn = Insn::new();
-    insn.rd = rc1!(data) as i8;
+    insn.rs1 = rc1!(data) as i8;
     insn.rs2 = rc2!(data) as i8;
     insn.rvc = true;
 

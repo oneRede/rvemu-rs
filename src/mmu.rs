@@ -95,10 +95,7 @@ pub fn mmu_load_elf(mut mmu: &mut Mmu, fd: i32) {
     }
 
     let ehdr: Ehdr = unsafe { std::ptr::read(buf.as_ptr() as *const Ehdr) };
-    let elf_h = unsafe { *(buf[..4].as_ptr() as *const u32) };
-    let elf_mag = unsafe { *((ELFMAG).as_ptr() as *const u32) };
-
-    if elf_h != elf_mag {
+    if !ELFMAG.eq(&buf[..4]) {
         fatal!("bad elf file")
     }
 
@@ -126,7 +123,7 @@ pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
     assert!(mmu.alloc >= mmu.base);
     if sz > 0 && mmu.alloc > to_guest!(mmu.host_alloc) {
         let ptr: *mut u8 = ptr::null_mut();
-        let ptr = unsafe { ptr.add(mmu.alloc as usize) };
+        let ptr = unsafe { ptr.add(mmu.host_alloc as usize) };
         if unsafe {
             mmap(
                 ptr as *mut c_void,

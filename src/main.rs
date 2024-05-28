@@ -1,7 +1,7 @@
 use std::env;
 
 use crate::{
-    machine::{machine_load_program, machine_step},
+    machine::{machine_load_program, machine_setup, machine_step},
     reg::GpRegTypeT,
     rvemu::{machine_get_gp_reg, machine_set_gp_reg, ExitReason, Machine},
     sys_call::do_syscall,
@@ -23,7 +23,7 @@ fn main() {
 
     let mut machine = Machine::new();
     machine_load_program(&mut machine, &args[1]);
-    machine_step(&mut machine);
+    machine_setup(&mut machine, args.len() as i32, args);
 
     loop {
         let reason = machine_step(&mut machine);

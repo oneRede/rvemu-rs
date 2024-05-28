@@ -7,7 +7,7 @@ use crate::{
     rvemu::{ExitReason, Insn, State},
     to_host,
 };
-use rvmu_rs::{
+use rvemu_rs::{
     p_func1, p_func10, p_func11, p_func12, p_func13, p_func14, p_func2, p_func3, p_func4, p_func5,
     p_func6, p_func7, p_func8, p_func9,
 };
@@ -720,7 +720,7 @@ pub fn exec_block_interp(state: &mut State) {
     loop {
         let data: *const u8 = ptr::null();
         let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
-        insn_decode(&mut insn, *(unsafe { data.as_ref().unwrap() }));
+        insn_decode(&mut insn, *unsafe { data.as_ref().unwrap() });
 
         FUNCS.get(insn.i_type as usize).unwrap()(state, &mut insn);
         state.gp_regs[GpRegTypeT::Zero as usize] = 0;
