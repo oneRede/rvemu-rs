@@ -1,9 +1,9 @@
 #[inline]
 pub fn mulhu(a: u64, b: u64) -> u64 {
     let mut t: u64;
-    let mut y1: u32;
-    let mut y2: u32;
-    let y3: u32;
+    let mut y1: u64;
+    let mut y2: u64;
+    let y3: u64;
 
     let a0 = a;
     let a1 = a >> 32;
@@ -11,17 +11,17 @@ pub fn mulhu(a: u64, b: u64) -> u64 {
     let b1 = b >> 32;
 
     t = a1 * b0 + (a0 * b0 >> 32);
-    y1 = t as u32;
-    y2 = (t >> 32) as u32;
-    t = a0 * b1 + y1 as u64;
-    y1 = t as u32;
-    t = a1 * b1 + y1 as u64;
-    t = a1 * b1 + (y2 as u64) + (t >> 32) as u64;
+    y1 = t;
+    y2 = t >> 32;
+    t = a0 * b1 + y1;
+    y1 = t;
+    t = a1 * b1 + y1;
+    t = a1 * b1 + y2 + (t >> 32);
 
-    y2 = t as u32;
-    y3 = (t >> 32) as u32;
+    y2 = t;
+    y3 = t >> 32;
 
-    (((y3 as u64) << 32) | y2 as u64) as u64
+    (y3 << 32) | y2
 }
 
 #[inline]
