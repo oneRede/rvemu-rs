@@ -1,4 +1,7 @@
-use crate::{reg::{FpRegT, FpRegTypeT, GpRegTypeT}, to_host};
+use crate::{
+    reg::{FpRegT, FpRegTypeT, GpRegTypeT},
+    to_host,
+};
 use std::ptr;
 
 #[derive(Clone, Copy)]

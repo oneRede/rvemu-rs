@@ -253,8 +253,8 @@ pub fn insn_catype_read(data: u16) -> Insn {
 #[inline]
 pub fn insn_crtype_read(data: u16) -> Insn {
     let mut insn = Insn::new();
-    insn.rs1 = rc1!(data) ;
-    insn.rs2 = rc2!(data) ;
+    insn.rs1 = rc1!(data);
+    insn.rs2 = rc2!(data);
     insn.rvc = true;
 
     return insn;
