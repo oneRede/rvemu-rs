@@ -21,28 +21,28 @@ macro_rules! op_code {
 #[macro_export]
 macro_rules! rd {
     ($data:ident) => {
-        (((($data) >> 7) as i8) & 0x1f)
+        (((($data) >> 7) as i8) & 0x1f) as i8
     };
 }
 
 #[macro_export]
 macro_rules! rs1 {
     ($data:ident) => {
-        (($data >> 15) & 0x1f)
+        (($data >> 15) & 0x1f) as i8
     };
 }
 
 #[macro_export]
 macro_rules! rs2 {
     ($data:ident) => {
-        (($data >> 20) & 0x1f)
+        (($data >> 20) & 0x1f) as i8
     };
 }
 
 #[macro_export]
 macro_rules! rs3 {
     ($data:ident) => {
-        (($data >> 27) & 0x1f)
+        (($data >> 27) & 0x1f) as i8
     };
 }
 
@@ -81,7 +81,7 @@ pub fn insn_utype_read(data: u32) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rd as i8;
+    insn.rd = rd;
     return insn;
 }
 
@@ -93,8 +93,8 @@ pub fn insn_itype_read(data: u32) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rd as i8;
-    insn.rs1 = rs1 as i8;
+    insn.rd = rd;
+    insn.rs1 = rs1;
     return insn;
 }
 
@@ -127,8 +127,8 @@ pub fn insn_btype_read(data: u32) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs1 = rs1!(data) as i8;
-    insn.rs2 = rs2!(data) as i8;
+    insn.rs1 = rs1!(data);
+    insn.rs2 = rs2!(data);
 
     return insn;
 }
@@ -137,9 +137,9 @@ pub fn insn_btype_read(data: u32) -> Insn {
 pub fn insn_rtype_read(data: u32) -> Insn {
     let mut insn = Insn::new();
 
-    insn.rs1 = rs1!(data) as i8;
-    insn.rs2 = rs2!(data) as i8;
-    insn.rd = rd!(data) as i8;
+    insn.rs1 = rs1!(data);
+    insn.rs2 = rs2!(data);
+    insn.rd = rd!(data);
 
     return insn;
 }
@@ -154,8 +154,8 @@ pub fn insn_stype_read(data: u32) -> Insn {
 
     let mut insn = Insn::new();
 
-    insn.rs1 = rs1!(data) as i8;
-    insn.rs2 = rs2!(data) as i8;
+    insn.rs1 = rs1!(data);
+    insn.rs2 = rs2!(data);
     insn.imm = imm;
 
     return insn;
@@ -166,8 +166,8 @@ pub fn insn_csrtype_read(data: u32) -> Insn {
     let mut insn = Insn::new();
 
     insn.csr = (data >> 20) as i16;
-    insn.rs1 = rs1!(data) as i8;
-    insn.rd = rd!(data) as i8;
+    insn.rs1 = rs1!(data);
+    insn.rd = rd!(data);
 
     return insn;
 }
@@ -176,10 +176,10 @@ pub fn insn_csrtype_read(data: u32) -> Insn {
 pub fn insn_fprtype_read(data: u32) -> Insn {
     let mut insn = Insn::new();
 
-    insn.rs1 = rs1!(data) as i8;
-    insn.rs2 = rs2!(data) as i8;
-    insn.rs3 = rs3!(data) as i8;
-    insn.rd = rd!(data) as i8;
+    insn.rs1 = rs1!(data);
+    insn.rs2 = rs2!(data);
+    insn.rs3 = rs3!(data);
+    insn.rd = rd!(data);
 
     return insn;
 }
@@ -215,14 +215,14 @@ macro_rules! cfunc_t2_high {
 #[macro_export]
 macro_rules! rp1 {
     ($data:ident) => {
-        (($data >> 7) & 0x7)
+        (($data >> 7) & 0x7) as i8
     };
 }
 
 #[macro_export]
 macro_rules! rp2 {
     ($data:ident) => {
-        (($data >> 2) & 0x7)
+        (($data >> 2) & 0x7) as i8
     };
 }
 
@@ -236,15 +236,15 @@ macro_rules! rc1 {
 #[macro_export]
 macro_rules! rc2 {
     ($data:ident) => {
-        (($data >> 2) & 0x1f)
+        (($data >> 2) & 0x1f) as i8
     };
 }
 
 #[inline]
 pub fn insn_catype_read(data: u16) -> Insn {
     let mut insn = Insn::new();
-    insn.rd = rp1!(data) as i8 + 8;
-    insn.rs2 = rp2!(data) as i8 + 8;
+    insn.rd = rp1!(data) + 8;
+    insn.rs2 = rp2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -350,7 +350,7 @@ pub fn insn_cbtype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs1 = rp1!(data) as i8 + 8;
+    insn.rs1 = rp1!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -365,7 +365,7 @@ pub fn insn_cbtype_read2(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rp1!(data) as i8 + 8;
+    insn.rd = rp1!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -379,8 +379,8 @@ pub fn insn_cstype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs1 = rp1!(data) as i8 + 8;
-    insn.rs2 = rp2!(data) as i8 + 8;
+    insn.rs1 = rp1!(data) + 8;
+    insn.rs2 = rp2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -395,8 +395,8 @@ pub fn insn_cstype_read2(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs1 = rp1!(data) as i8 + 8;
-    insn.rs2 = rp2!(data) as i8 + 8;
+    insn.rs1 = rp1!(data) + 8;
+    insn.rs2 = rp2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -438,8 +438,8 @@ pub fn insn_cltype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs1 = rp1!(data) as i8 + 8;
-    insn.rd = rp2!(data) as i8 + 8;
+    insn.rs1 = rp1!(data) + 8;
+    insn.rd = rp2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -453,8 +453,8 @@ pub fn insn_cltype_read2(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs1 = rp1!(data) as i8 + 8;
-    insn.rd = rp2!(data) as i8 + 8;
+    insn.rs1 = rp1!(data) + 8;
+    insn.rd = rp2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -468,7 +468,7 @@ pub fn insn_csstype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs2 = rc2!(data) as i8 + 8;
+    insn.rs2 = rc2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -482,7 +482,7 @@ pub fn insn_csstype_read2(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs2 = rc2!(data) as i8 + 8;
+    insn.rs2 = rc2!(data) + 8;
     insn.rvc = true;
 
     return insn;
@@ -498,7 +498,7 @@ pub fn insn_ciwtype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rp2!(data) as i8 + 8;
+    insn.rd = rp2!(data) + 8;
     insn.rvc = true;
 
     return insn;
