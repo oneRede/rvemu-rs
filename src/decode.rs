@@ -229,7 +229,7 @@ macro_rules! rp2 {
 #[macro_export]
 macro_rules! rc1 {
     ($data:ident) => {
-        (($data >> 7) & 0x1f)
+        (($data >> 7) & 0x1f) as i8
     };
 }
 
@@ -253,8 +253,8 @@ pub fn insn_catype_read(data: u16) -> Insn {
 #[inline]
 pub fn insn_crtype_read(data: u16) -> Insn {
     let mut insn = Insn::new();
-    insn.rs1 = rc1!(data) as i8;
-    insn.rs2 = rc2!(data) as i8;
+    insn.rs1 = rc1!(data) ;
+    insn.rs2 = rc2!(data) ;
     insn.rvc = true;
 
     return insn;
@@ -269,7 +269,7 @@ pub fn insn_citype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm as i32;
-    insn.rd = rc1!(data) as i8;
+    insn.rd = rc1!(data);
     insn.rvc = true;
 
     return insn;
@@ -284,7 +284,7 @@ pub fn insn_citype_read2(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rc1!(data) as i8;
+    insn.rd = rc1!(data);
     insn.rvc = true;
 
     return insn;
@@ -302,7 +302,7 @@ pub fn insn_citype_read3(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rc1!(data) as i8;
+    insn.rd = rc1!(data);
     insn.rvc = true;
 
     return insn;
@@ -317,7 +317,7 @@ pub fn insn_citype_read4(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rc1!(data) as i8;
+    insn.rd = rc1!(data);
     insn.rvc = true;
 
     return insn;
@@ -332,7 +332,7 @@ pub fn insn_citype_read5(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rd = rc1!(data) as i8;
+    insn.rd = rc1!(data);
     insn.rvc = true;
 
     return insn;
