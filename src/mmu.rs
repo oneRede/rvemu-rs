@@ -35,7 +35,7 @@ pub fn flags_to_mmap_prot(flags: i32) -> i32 {
     let r = if (flags & PF_R) != 0 { PROT_READ } else { 0 };
     let w = if (flags & PF_W) != 0 { PROT_WRITE } else { 0 };
     let x = if (flags & PF_X) != 0 { PROT_EXEC } else { 0 };
-    return (r | w | x) as i32;
+    return r | w | x;
 }
 
 pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {

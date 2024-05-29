@@ -49,11 +49,11 @@ pub fn machine_setup(m: &mut Machine, argc: i32, argv: Vec<String>) {
     m.state.gp_regs[GpRegTypeT::Sp as usize] -= 8;
 
     let args: u64 = argc as u64 - 1;
-    let mut i = args;
+    let mut i: usize = args as usize;
     while i > 0 {
-        let len = argv[i as usize].len();
+        let len = argv[i].len();
         let addr = mmu_alloc(&mut m.mmu, (len + 1) as i64);
-        mmu_write(addr, argv[i as usize].as_ptr(), len);
+        mmu_write(addr, argv[i].as_ptr(), len);
         m.state.gp_regs[GpRegTypeT::Sp as usize] -= 8;
         let ap = (&addr) as *const u64 as *const u8;
         mmu_write(m.state.gp_regs[GpRegTypeT::Sp as usize], ap, 8);

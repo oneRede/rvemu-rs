@@ -15,10 +15,10 @@ pub const PF_X: i32 = 0x1;
 pub const PF_W: i32 = 0x2;
 pub const PF_R: i32 = 0x4;
 
-pub const PROT_NONE: u32 = 0x00;
-pub const PROT_READ: u32 = 0x01;
-pub const PROT_WRITE: u32 = 0x02;
-pub const PROT_EXEC: u32 = 0x04;
+pub const PROT_NONE: i32 = 0x00;
+pub const PROT_READ: i32 = 0x01;
+pub const PROT_WRITE: i32 = 0x02;
+pub const PROT_EXEC: i32 = 0x04;
 
 #[macro_export]
 macro_rules! round_down {
