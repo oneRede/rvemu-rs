@@ -9,10 +9,10 @@ use quote::quote;
 pub fn p_func1(typ: TokenStream) -> TokenStream {
     let ty: syn::Type = syn::parse(typ).unwrap();
     let tt = quote! {
-        let addr: u64 = state.gp_regs[insn.rs1 as usize] + (insn.imm as u64);
+        let addr: u64 = ((state.gp_regs[insn.rs1 as usize] as i64) + (insn.imm as i64)) as u64;
         let h_addr: u64 = to_host!(addr);
-        let ptr: *mut #ty = ptr::null_mut();
-        let ptr: *mut #ty = unsafe { ptr.add(h_addr as usize) };
+        let ptr: *mut u8 = ptr::null_mut();
+        let ptr: *mut #ty = unsafe { ptr.add(h_addr as usize) } as *mut  #ty;
         let n: #ty = unsafe{ (*(ptr.as_ref().unwrap()))};
         state.gp_regs[insn.rd as usize] = n as u64;
     };
@@ -24,8 +24,8 @@ pub fn p_func1(typ: TokenStream) -> TokenStream {
 pub fn p_func2(typ: TokenStream) -> TokenStream {
     let expr: syn::Expr = syn::parse(typ).unwrap();
     let tt = quote! {
-        let rs1 = state.gp_regs[insn.rs1 as usize];
-        let imm = insn.imm as u64;
+        let rs1 = state.gp_regs[insn.rs1 as usize] as i64;
+        let imm = insn.imm as i64;
         state.gp_regs[insn.rd as usize] = (#expr) as u64;
     };
 
@@ -203,12 +203,21 @@ pub fn rewrite_flag(flag: TokenStream) -> TokenStream {
     let st: &str = &("NEWLIB_".to_string() + &flag.to_string());
     let i_flag: syn::Ident = syn::parse(flag).unwrap();
     let st: TokenStream = TokenStream::from_str(st).unwrap();
-    let ident: syn::Ident = syn::parse(st).unwrap(); 
+    let ident: syn::Ident = syn::parse(st).unwrap();
     let tt = quote! {
         if (flags & #ident) != 0 {
             host_flags |= #i_flag
         }
 
+    };
+
+    tt.into()
+}
+
+#[proc_macro]
+pub fn guest_mem_offset(_item: TokenStream) -> TokenStream {
+    let tt = quote! {
+        let guest_mem_offset: u64 = 0x000800000000u64;
     };
 
     tt.into()

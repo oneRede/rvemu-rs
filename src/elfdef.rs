@@ -122,9 +122,3 @@ impl Phdr {
         }
     }
 }
-
-#[test]
-fn test_to_host() {
-    let data = 123456;
-    println!("{:?}", to_host!(data))
-}

@@ -51,11 +51,11 @@ pub fn func_slli(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_slti(state: &mut State, insn: &mut Insn) {
-    p_func2!((rs1 as i64) < (imm as i64));
+    p_func2!(rs1 < imm);
 }
 
 pub fn func_sltiu(state: &mut State, insn: &mut Insn) {
-    p_func2!((rs1 as u64) < (imm as u64));
+    p_func2!(rs1 < imm);
 }
 
 pub fn func_xori(state: &mut State, insn: &mut Insn) {
@@ -67,7 +67,7 @@ pub fn func_srli(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_srai(state: &mut State, insn: &mut Insn) {
-    p_func2!(rs1 as i64 >> (imm & 0x3f));
+    p_func2!(rs1 >> (imm & 0x3f));
 }
 
 pub fn func_ori(state: &mut State, insn: &mut Insn) {
@@ -75,23 +75,23 @@ pub fn func_ori(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_andi(state: &mut State, insn: &mut Insn) {
-    p_func2!(rs1 | (imm as u64));
+    p_func2!(rs1 | imm);
 }
 
 pub fn func_addiw(state: &mut State, insn: &mut Insn) {
-    p_func2!((rs1 + imm) as i64);
+    p_func2!(rs1 + imm);
 }
 
 pub fn func_slliw(state: &mut State, insn: &mut Insn) {
-    p_func2!((rs1 << (imm & 0x1f)) as i64);
+    p_func2!(rs1 << (imm & 0x1f));
 }
 
 pub fn func_srliw(state: &mut State, insn: &mut Insn) {
-    p_func2!(((rs1 as u32) >> (imm & 0x1f)) as i64);
+    p_func2!(rs1 >> (imm & 0x1f));
 }
 
 pub fn func_sraiw(state: &mut State, insn: &mut Insn) {
-    p_func2!(((rs1 as i32) >> (imm & 0x1f)) as i64);
+    p_func2!(rs1 >> (imm & 0x1f));
 }
 
 pub fn func_auipc(state: &mut State, insn: &mut Insn) {
@@ -295,7 +295,7 @@ pub fn func_jalr(state: &mut State, insn: &mut Insn) {
 
 pub fn func_jal(state: &mut State, insn: &mut Insn) {
     state.gp_regs[insn.rd as usize] = state.pc + (if insn.rvc { 2 } else { 4 });
-    state.pc = state.pc + insn.imm as u64;
+    state.pc = ((state.pc as i64) + (insn.imm as i64)) as u64;
     state.reenter_pc = state.pc;
     state.exit_reason = ExitReason::IndirectBranch;
 }

@@ -9,11 +9,14 @@ use crate::{
 
 pub fn machine_step(m: &mut Machine) -> ExitReason {
     loop {
+        m.state.exit_reason = ExitReason::None;
         exec_block_interp(&mut m.state);
+        assert!(m.state.exit_reason != ExitReason::None);
 
         if m.state.exit_reason == ExitReason::IndirectBranch
             || m.state.exit_reason == ExitReason::DirectBranch
         {
+            m.state.pc = m.state.reenter_pc;
             continue;
         }
         break;
