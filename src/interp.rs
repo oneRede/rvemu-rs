@@ -290,7 +290,7 @@ pub fn func_jalr(state: &mut State, insn: &mut Insn) {
     let rs1 = state.gp_regs[insn.rs1 as usize];
     state.gp_regs[insn.rd as usize] = state.pc + (if insn.rvc { 2 } else { 4 });
     state.exit_reason = ExitReason::IndirectBranch;
-    state.reenter_pc = rs1 + (insn.imm as u64 & !1u64);
+    state.reenter_pc = ((rs1 as i128 + insn.imm as i128) as u64) & !1u64;
 }
 
 pub fn func_jal(state: &mut State, insn: &mut Insn) {
