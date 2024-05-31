@@ -720,6 +720,7 @@ pub fn exec_block_interp(state: &mut State) {
     loop {
         let data: *const u8 = ptr::null();
         let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
+        println!("{:?}", *unsafe { data.as_ref().unwrap() });
         insn_decode(&mut insn, *unsafe { data.as_ref().unwrap() });
 
         FUNCS.get(insn.i_type as usize).unwrap()(state, &mut insn);

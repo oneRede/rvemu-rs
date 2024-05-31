@@ -38,8 +38,8 @@ pub fn p_func3(typ: TokenStream) -> TokenStream {
     let tt = quote! {
         let rs1 = state.gp_regs[insn.rs1 as usize];
         let rs2 = state.gp_regs[insn.rs2 as usize];
-        let ptr: *mut #ty = ptr::null_mut();
-        let ptr: *mut #ty = unsafe { ptr.add(to_host!(rs1 + (insn.imm as u64)) as usize) };
+        let ptr: *mut u8 = ptr::null_mut();
+        let ptr: *mut #ty = unsafe { ptr.add(to_host!(rs1 + (insn.imm as u64)) as usize) } as *mut #ty;
         let ptr_mut: &mut #ty = unsafe{ptr.as_mut().unwrap()};
         *ptr_mut = (rs2 as #ty);
 
