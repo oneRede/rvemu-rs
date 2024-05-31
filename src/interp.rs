@@ -564,11 +564,11 @@ pub fn func_fcvt_s_lu(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_fcvt_d_l(state: &mut State, insn: &mut Insn) {
-    state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
+    state.fp_regs[insn.rd as usize].d = state.fp_regs[insn.rs1 as usize].d as f64;
 }
 
 pub fn func_fcvt_d_lu(state: &mut State, insn: &mut Insn) {
-    state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
+    state.fp_regs[insn.rd as usize].d = state.fp_regs[insn.rs1 as usize].d as f64;
 }
 
 pub fn func_fcvt_s_d(state: &mut State, insn: &mut Insn) {
@@ -576,7 +576,7 @@ pub fn func_fcvt_s_d(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_fcvt_d_s(state: &mut State, insn: &mut Insn) {
-    state.fp_regs[insn.rd as usize].f = state.fp_regs[insn.rs1 as usize].d as f32;
+    state.fp_regs[insn.rd as usize].d = state.fp_regs[insn.rs1 as usize].d as f64;
 }
 
 pub static FUNCS: [fn(&mut State, &mut Insn); 133] = [
