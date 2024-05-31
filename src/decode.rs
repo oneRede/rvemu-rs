@@ -262,8 +262,8 @@ pub fn insn_crtype_read(data: u16) -> Insn {
 
 #[inline]
 pub fn insn_citype_read(data: u16) -> Insn {
-    let imm40 = (data >> 2) & 0x1f;
-    let imm5 = (data >> 12) & 0x1;
+    let imm40: u32 = ((data >> 2) & 0x1f) as u32;
+    let imm5: u32 = ((data >> 12) & 0x1) as u32;
     let mut imm: i32 = ((imm5 << 5) | imm40) as i32;
     imm = (imm << 26) >> 26;
 
@@ -512,7 +512,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
             let copcode = cop_code!(data);
             match copcode {
                 0x0 => {
-                    *insn = insn_citype_read(data as u16);
+                    *insn = insn_ciwtype_read(data as u16);
                     insn.rs1 = GpRegTypeT::Sp as i8;
                     insn.i_type = InsnType::InsnAddi;
                     assert!(insn.imm != 0);
@@ -644,7 +644,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                                             insn.i_type = InsnType::InsnSubw;
                                         }
                                         0x1 => {
-                                            insn.i_type = InsnType::InsnAnd;
+                                            insn.i_type = InsnType::InsnAddw;
                                         }
                                         _ => {
                                             unreachable!()
@@ -722,12 +722,13 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                                 insn.rd = GpRegTypeT::Zero as i8;
                                 insn.i_type = InsnType::InsnJalr;
                                 insn.cont = true;
+                                return;
                             } else {
                                 insn.rd = insn.rs1;
                                 insn.rs1 = GpRegTypeT::Zero as i8;
                                 insn.i_type = InsnType::InsnAdd;
+                                return;
                             }
-                            return;
                         }
                         0x1 => {
                             *insn = insn_crtype_read(data as u16);
@@ -878,7 +879,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             return;
                         }
                         0x4 => {
-                            insn.i_type = InsnType::InsnXor;
+                            insn.i_type = InsnType::InsnXori;
                             return;
                         }
                         0x5 => {
@@ -886,7 +887,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
 
                             if imm116 == 0x0 {
                                 /* SRLI */
-                                insn.i_type = InsnType::InsnSlti;
+                                insn.i_type = InsnType::InsnSrli;
                             } else if imm116 == 0x10 {
                                 /* SRAI */
                                 insn.i_type = InsnType::InsnSrai;
@@ -900,7 +901,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             return;
                         }
                         0x7 => {
-                            insn.i_type = InsnType::InsnAddi;
+                            insn.i_type = InsnType::InsnAndi;
                             return;
                         }
                         _ => {
@@ -920,12 +921,12 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                     *insn = insn_itype_read(data);
                     match funct3 {
                         0x0 => {
-                            insn.i_type = InsnType::InsnAddi;
+                            insn.i_type = InsnType::InsnAddiw;
                             return;
                         }
                         0x1 => {
                             assert!(funct7 == 0);
-                            insn.i_type = InsnType::InsnAddi;
+                            insn.i_type = InsnType::InsnSlliw;
                             return;
                         }
                         0x5 => match funct7 {
@@ -1026,7 +1027,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                                 return;
                             }
                             0x7 => {
-                                insn.i_type = InsnType::InsnAdd;
+                                insn.i_type = InsnType::InsnAnd;
                                 return;
                             }
                             _ => {
@@ -1130,7 +1131,7 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                                 return;
                             }
                             0x6 => {
-                                insn.i_type = InsnType::InsnRemu;
+                                insn.i_type = InsnType::InsnRemw;
                                 return;
                             }
                             0x7 => {

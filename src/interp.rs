@@ -75,7 +75,7 @@ pub fn func_ori(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_andi(state: &mut State, insn: &mut Insn) {
-    p_func2!(rs1 | imm);
+    p_func2!(rs1 & imm);
 }
 
 pub fn func_addiw(state: &mut State, insn: &mut Insn) {
