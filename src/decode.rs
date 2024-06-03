@@ -468,7 +468,7 @@ pub fn insn_csstype_read(data: u16) -> Insn {
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs2 = rc2!(data) + 8;
+    insn.rs2 = rc2!(data);
     insn.rvc = true;
 
     return insn;

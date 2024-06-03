@@ -1,4 +1,4 @@
-use std::ptr;
+use std::{ptr, mem};
 
 use crate::{
     decode::insn_decode,
@@ -720,8 +720,18 @@ pub fn exec_block_interp(state: &mut State) {
     loop {
         let data: *const u8 = ptr::null();
         let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
-        println!("{:?}", *unsafe { data.as_ref().unwrap() });
+        println!("data: {:?}", *unsafe { data.as_ref().unwrap() });
+        if *unsafe { data.as_ref().unwrap() } == 1741547554{
+            println!("data: {:?}", *unsafe { data.as_ref().unwrap() });
+        };
         insn_decode(&mut insn, *unsafe { data.as_ref().unwrap() });
+        println!("Insn: {{rd: {}, rs1: {}, rs2: {}, rs3: {}, imm: {}, csr: {}, type: {}, rvc: {}, cont: {}}}",
+               insn.rd, insn.rs1, insn.rs2, insn.rs3, insn.imm, insn.csr, insn.i_type as usize, insn.rvc as usize, insn.cont as usize);
+        println!("pc: {}, reenter_pc: {}", state.pc, state.reenter_pc);
+        for i in 0..state.gp_regs.len() {
+            print!("{}: {}, ", i, state.gp_regs[i]);
+        }
+        println!("");
 
         FUNCS.get(insn.i_type as usize).unwrap()(state, &mut insn);
         state.gp_regs[GpRegTypeT::Zero as usize] = 0;

@@ -4,6 +4,7 @@ use crate::{
 };
 use std::ptr;
 
+#[derive(Debug)]
 #[derive(Clone, Copy)]
 pub enum InsnType {
     InsnLb,
@@ -142,6 +143,7 @@ pub enum InsnType {
     NumInsns,
 }
 
+#[derive(Debug)]
 #[derive(Clone, Copy)]
 pub struct Insn {
     pub rd: i8,
@@ -190,6 +192,7 @@ impl Mmu {
     }
 }
 
+#[derive(Debug)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum ExitReason {
     None,
@@ -199,12 +202,14 @@ pub enum ExitReason {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 enum Csr {
     Fflags = 0x001,
     Frm = 0x002,
     Fcsr = 0x003,
 }
 
+#[derive(Debug)]
 #[derive(Clone, Copy)]
 pub struct State {
     pub exit_reason: ExitReason,
