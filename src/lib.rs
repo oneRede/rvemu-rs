@@ -39,9 +39,6 @@ pub fn p_func3(typ: TokenStream) -> TokenStream {
         let rs1 = state.gp_regs[insn.rs1 as usize];
         let rs2 = state.gp_regs[insn.rs2 as usize];
         let ptr: *mut u8 = ptr::null_mut();
-        if (((rs1 as i64) + (insn.imm as i64)) as u64) == 33636296 {
-            println!("get addr!!!!");
-        }
         let ptr: *mut u8 = unsafe { ptr.add(to_host!(((rs1 as i64) + (insn.imm as i64)) as u64) as usize) };
 
         let d_p = (state.gp_regs).as_ptr() as *const u8;
