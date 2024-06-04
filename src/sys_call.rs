@@ -148,6 +148,23 @@ pub fn sys_fstat(m: &mut Machine) -> u64 {
     return ret;
 }
 
+#[cfg(target_os = "linux")]
+pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
+    get!(A0, tv_addr, m);
+    get!(A1, tz_addr, m);
+
+    let ptr: *mut u8 = ptr::null_mut();
+    let tv = unsafe { ptr.add(tv_addr as usize) } as *mut timeval;
+    let mut tz: *mut timezone = ptr::null_mut();
+    if tz_addr != 0 {
+        let pp: *mut u8 = ptr::null_mut();
+        let pp = unsafe { pp.add(to_host!(tv_addr) as usize) } as *mut timezone;
+        tz = pp;
+    }
+    return unsafe { gettimeofday(tv, tz as *mut timezone) } as u64;
+}
+
+#[cfg(target_os = "macos")]
 pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
     get!(A0, tv_addr, m);
     get!(A1, tz_addr, m);
