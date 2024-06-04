@@ -233,7 +233,8 @@ pub fn sys_read(m: &mut Machine) -> u64 {
     return unsafe { read(fd as i32, ptr, count as usize) as u64 };
 }
 
-pub static mut SYSCALL_TABLE: [Option<fn(&mut Machine) -> u64>; 2011] = [Some(sys_unimplemented); 2011];
+pub static mut SYSCALL_TABLE: [Option<fn(&mut Machine) -> u64>; 2011] =
+    [Some(sys_unimplemented); 2011];
 
 pub fn init_sys_call() {
     unsafe { SYSCALL_TABLE[SYS_EXIT] = Some(sys_exit) };
@@ -248,15 +249,14 @@ pub fn init_sys_call() {
     unsafe { SYSCALL_TABLE[SYS_GETTIMEOFDAY] = Some(sys_gettimeofday) };
 }
 
-pub static mut OLD_SYSCALL_TABLE: [Option<fn(&mut Machine) -> u64>; 39] = [Some(sys_unimplemented); 39];
+pub static mut OLD_SYSCALL_TABLE: [Option<fn(&mut Machine) -> u64>; 39] =
+    [Some(sys_unimplemented); 39];
 
 pub fn init_sys_call_table() {
     unsafe { SYSCALL_TABLE[SYS_OPEN - OLD_SYSCALL_THRESHOLD] = Some(sys_exit) };
 }
 
 pub fn do_syscall(m: &mut Machine, n: u64) -> u64 {
-    init_sys_call();
-    init_sys_call_table();
     let mut f: Option<fn(&mut Machine) -> u64> = None;
     if n < unsafe { SYSCALL_TABLE.len() } as u64 {
         f = unsafe { SYSCALL_TABLE[n as usize] }

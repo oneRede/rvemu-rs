@@ -1,5 +1,7 @@
 use std::env;
 
+use sys_call::{init_sys_call, init_sys_call_table};
+
 use crate::{
     machine::{machine_load_program, machine_setup, machine_step},
     reg::GpRegTypeT,
@@ -24,6 +26,8 @@ fn main() {
     let mut machine = Machine::new();
     machine_load_program(&mut machine, &args[1]);
     machine_setup(&mut machine, args.len() as i32, args);
+    init_sys_call();
+    init_sys_call_table();
 
     loop {
         let reason = machine_step(&mut machine);

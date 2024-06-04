@@ -1,4 +1,4 @@
-use std::{ptr, mem};
+use std::{mem, ptr};
 
 use crate::{
     decode::insn_decode,

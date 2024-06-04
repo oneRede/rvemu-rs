@@ -72,8 +72,7 @@ pub enum FpRegTypeT {
     NumFpRegs,
 }
 
-#[derive(Debug)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
 pub struct FpRegT {
     pub v: u64,
