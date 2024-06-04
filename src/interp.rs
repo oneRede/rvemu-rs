@@ -164,7 +164,7 @@ pub fn func_mulhu(state: &mut State, insn: &mut Insn) {
 }
 
 pub fn func_sub(state: &mut State, insn: &mut Insn) {
-    p_func4!(rs1 - rs2);
+    p_func4!((rs1 as i64) - (rs2 as i64));
 }
 
 pub fn func_sra(state: &mut State, insn: &mut Insn) {
@@ -721,7 +721,7 @@ pub fn exec_block_interp(state: &mut State) {
         let data: *const u8 = ptr::null();
         let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
         println!("data: {:?}", *unsafe { data.as_ref().unwrap() });
-        if *unsafe { data.as_ref().unwrap() } == 1741547554{
+        if *unsafe { data.as_ref().unwrap() } == 115 {
             println!("data: {:?}", *unsafe { data.as_ref().unwrap() });
         };
         insn_decode(&mut insn, *unsafe { data.as_ref().unwrap() });

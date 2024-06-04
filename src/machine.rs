@@ -21,6 +21,7 @@ pub fn machine_step(m: &mut Machine) -> ExitReason {
         }
         break;
     }
+    m.state.pc = m.state.reenter_pc;
     assert!(m.state.exit_reason == ExitReason::Ecall);
     return ExitReason::Ecall;
 }

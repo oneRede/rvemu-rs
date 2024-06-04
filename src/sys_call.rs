@@ -144,8 +144,8 @@ pub fn sys_fstat(m: &mut Machine) -> u64 {
 
     let ptr: *mut u8 = ptr::null_mut();
     let ptr: *mut stat = unsafe { ptr.add(to_host!(addr) as usize) } as *mut stat;
-
-    return unsafe { libc::fstat(fd as i32, ptr) as u64 };
+    let ret = unsafe { libc::fstat(fd as i32, ptr) as u64 };
+    return ret;
 }
 
 pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
@@ -233,68 +233,37 @@ pub fn sys_read(m: &mut Machine) -> u64 {
     return unsafe { read(fd as i32, ptr, count as usize) as u64 };
 }
 
-pub const SYSCALL_TABLE: [fn(&mut Machine) -> u64; 42] = [
-    sys_exit,
-    sys_exit,
-    sys_read,
-    sys_unimplemented,
-    sys_write,
-    sys_openat,
-    sys_close,
-    sys_fstat,
-    sys_unimplemented,
-    sys_lseek,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_brk,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_gettimeofday,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-];
+pub static mut SYSCALL_TABLE: [Option<fn(&mut Machine) -> u64>; 2011] = [Some(sys_unimplemented); 2011];
 
-pub const OLD_SYSCALL_TABLE: [fn(&mut Machine) -> u64; 8] = [
-    sys_open,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-    sys_unimplemented,
-];
+pub fn init_sys_call() {
+    unsafe { SYSCALL_TABLE[SYS_EXIT] = Some(sys_exit) };
+    unsafe { SYSCALL_TABLE[SYS_EXIT_GROUP] = Some(sys_exit) };
+    unsafe { SYSCALL_TABLE[SYS_READ] = Some(sys_read) };
+    unsafe { SYSCALL_TABLE[SYS_WRITE] = Some(sys_write) };
+    unsafe { SYSCALL_TABLE[SYS_OPENAT] = Some(sys_openat) };
+    unsafe { SYSCALL_TABLE[SYS_CLOSE] = Some(sys_close) };
+    unsafe { SYSCALL_TABLE[SYS_FSTAT] = Some(sys_fstat) };
+    unsafe { SYSCALL_TABLE[SYS_LSEEK] = Some(sys_lseek) };
+    unsafe { SYSCALL_TABLE[SYS_BRK] = Some(sys_brk) };
+    unsafe { SYSCALL_TABLE[SYS_GETTIMEOFDAY] = Some(sys_gettimeofday) };
+}
+
+pub static mut OLD_SYSCALL_TABLE: [Option<fn(&mut Machine) -> u64>; 39] = [Some(sys_unimplemented); 39];
+
+pub fn init_sys_call_table() {
+    unsafe { SYSCALL_TABLE[SYS_OPEN - OLD_SYSCALL_THRESHOLD] = Some(sys_exit) };
+}
 
 pub fn do_syscall(m: &mut Machine, n: u64) -> u64 {
+    init_sys_call();
+    init_sys_call_table();
     let mut f: Option<fn(&mut Machine) -> u64> = None;
-    if n < SYSCALL_TABLE.len() as u64 {
-        f = Some(SYSCALL_TABLE[n as usize])
-    } else if (n as usize - OLD_SYSCALL_THRESHOLD) < OLD_SYSCALL_TABLE.len() {
-        f = Some(OLD_SYSCALL_TABLE[n as usize - OLD_SYSCALL_THRESHOLD])
+    if n < unsafe { SYSCALL_TABLE.len() } as u64 {
+        f = unsafe { SYSCALL_TABLE[n as usize] }
+    } else if (n as isize - OLD_SYSCALL_THRESHOLD as isize)
+        < unsafe { OLD_SYSCALL_TABLE.len() } as isize
+    {
+        f = unsafe { OLD_SYSCALL_TABLE[(n as isize - OLD_SYSCALL_THRESHOLD as isize) as usize] }
     }
     if f.is_none() {
         fatal!("unknown syscall");

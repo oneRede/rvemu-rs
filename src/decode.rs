@@ -149,7 +149,7 @@ pub fn insn_stype_read(data: u32) -> Insn {
     let imm115 = (data >> 25) & 0x7f;
     let imm40 = (data >> 7) & 0x1f;
 
-    let imm = (imm115 << 5) | imm40;
+    let imm = ((imm115 << 5) | imm40) as i32;
     let imm = ((imm << 20) >> 20) as i32;
 
     let mut insn = Insn::new();
@@ -477,12 +477,12 @@ pub fn insn_csstype_read(data: u16) -> Insn {
 #[inline]
 pub fn insn_csstype_read2(data: u16) -> Insn {
     let imm76: u32 = ((data as u32) >> 7) & 0x3;
-    let imm52: u32 = ((data as u32) >> 10) & 0x7;
+    let imm52: u32 = ((data as u32) >> 9) & 0xf;
     let imm = ((imm76 << 6) | (imm52 << 2)) as i32;
 
     let mut insn = Insn::new();
     insn.imm = imm;
-    insn.rs2 = rc2!(data) + 8;
+    insn.rs2 = rc2!(data);
     insn.rvc = true;
 
     return insn;
