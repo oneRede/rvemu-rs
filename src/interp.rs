@@ -587,8 +587,8 @@ pub static FUNCS: [fn(&mut State, &mut Insn); 133] = [
     func_lbu,
     func_lhu,
     func_lwu,
-    func_empty, // fence
-    func_empty, // fence_i
+    func_empty,
+    func_empty,
     func_addi,
     func_slli,
     func_slti,

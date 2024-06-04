@@ -45,9 +45,7 @@ pub fn machine_setup(m: &mut Machine, argc: i32, argv: Vec<String>) {
     let stack = mmu_alloc(&mut m.mmu, sz);
     m.state.gp_regs[GpRegTypeT::Sp as usize] = stack + sz as u64;
 
-    m.state.gp_regs[GpRegTypeT::Sp as usize] -= 8;
-    m.state.gp_regs[GpRegTypeT::Sp as usize] -= 8;
-    m.state.gp_regs[GpRegTypeT::Sp as usize] -= 8;
+    m.state.gp_regs[GpRegTypeT::Sp as usize] -= 24;
 
     let args: u64 = argc as u64 - 1;
     let mut i: usize = args as usize;
