@@ -139,7 +139,7 @@ pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
             fatal!("mmap failed!")
         }
         mmu.host_alloc += round_up!(sz, pz);
-    } else {
+    } else if sz < 0 && round_up!(mmu.alloc, pz) < to_guest!(mmu.host_alloc) {
         let len = to_guest!(mmu.host_alloc) - round_up!(mmu.alloc, pz);
         let ptr: *mut u8 = ptr::null_mut();
         let ptr = unsafe { ptr.add(mmu.alloc as usize) };

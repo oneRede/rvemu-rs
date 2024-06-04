@@ -24,7 +24,7 @@ pub fn p_func1(typ: TokenStream) -> TokenStream {
 pub fn p_func2(typ: TokenStream) -> TokenStream {
     let expr: syn::Expr = syn::parse(typ).unwrap();
     let tt = quote! {
-        let rs1 = state.gp_regs[insn.rs1 as usize] as i64;
+        let rs1 = state.gp_regs[insn.rs1 as usize];
         let imm = insn.imm as i64;
         state.gp_regs[insn.rd as usize] = (#expr) as u64;
     };
