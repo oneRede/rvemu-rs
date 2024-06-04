@@ -10,9 +10,7 @@ pub fn p_func1(typ: TokenStream) -> TokenStream {
     let ty: syn::Type = syn::parse(typ).unwrap();
     let tt = quote! {
         let addr: u64 = ((state.gp_regs[insn.rs1 as usize] as i64) + (insn.imm as i64)) as u64;
-        let h_addr: u64 = to_host!(addr);
-        let ptr: *mut u8 = ptr::null_mut();
-        let ptr: *mut #ty = unsafe { ptr.add(h_addr as usize) } as *mut  #ty;
+        let ptr: *mut #ty = get_ptr(to_host!(addr)) as *mut #ty;
         let n: #ty = unsafe{ (*(ptr.as_ref().unwrap()))};
         state.gp_regs[insn.rd as usize] = n as u64;
     };
@@ -38,8 +36,7 @@ pub fn p_func3(typ: TokenStream) -> TokenStream {
     let tt = quote! {
         let rs1 = state.gp_regs[insn.rs1 as usize];
         let rs2 = state.gp_regs[insn.rs2 as usize];
-        let ptr: *mut u8 = ptr::null_mut();
-        let ptr: *mut u8 = unsafe { ptr.add(to_host!(((rs1 as i64) + (insn.imm as i64)) as u64) as usize) };
+        let ptr = get_ptr(to_host!(((rs1 as i64) + (insn.imm as i64)) as u64));
 
         let d_p = (state.gp_regs).as_ptr() as *const u8;
         let d_p = unsafe{ d_p.add((insn.rs2 as usize) * 8)};

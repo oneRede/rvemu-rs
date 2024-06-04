@@ -1,10 +1,10 @@
-use std::{mem, ptr};
+use std::mem;
 
 use crate::{
     decode::insn_decode,
     interp_utils::{f32_classify, f64_classify, fsgnj32, fsgnj64, mulh, mulhsu, mulhu},
     reg::GpRegTypeT,
-    rvemu::{ExitReason, Insn, State},
+    rvemu::{get_ptr, ExitReason, Insn, State},
     to_host,
 };
 use rvemu_rs::{
@@ -718,9 +718,8 @@ pub static FUNCS: [fn(&mut State, &mut Insn); 133] = [
 pub fn exec_block_interp(state: &mut State) {
     let mut insn: Insn = Insn::new();
     loop {
-        let data: *const u8 = ptr::null();
-        let data: *const u32 = unsafe { data.add(to_host!(state.pc) as usize) } as *const u32;
-        insn_decode(&mut insn, *unsafe { data.as_ref().unwrap() });
+        let ptr = get_ptr(to_host!(state.pc)) as *const u32;
+        insn_decode(&mut insn, *unsafe { ptr.as_ref().unwrap() });
 
         FUNCS.get(insn.i_type as usize).unwrap()(state, &mut insn);
         state.gp_regs[GpRegTypeT::Zero as usize] = 0;

@@ -10,7 +10,7 @@ use crate::{
     fatal,
     mmu::mmu_alloc,
     reg::GpRegTypeT::{A0, A1, A2, A7},
-    rvemu::{machine_get_gp_reg, Machine},
+    rvemu::{get_ptr, machine_get_gp_reg, Machine},
     to_host,
 };
 
@@ -133,8 +133,7 @@ pub fn sys_write(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     get!(A1, ptr, m);
     get!(A2, len, m);
-    let pp: *mut u8 = ptr::null_mut();
-    let ptr = unsafe { pp.add(to_host!(ptr) as usize) } as *const c_void;
+    let ptr = get_ptr(to_host!(ptr)) as *const c_void;
     return unsafe { libc::write(fd as i32, ptr, len as usize) } as u64;
 }
 
@@ -142,8 +141,7 @@ pub fn sys_fstat(m: &mut Machine) -> u64 {
     get!(A0, fd, m);
     get!(A1, addr, m);
 
-    let ptr: *mut u8 = ptr::null_mut();
-    let ptr: *mut stat = unsafe { ptr.add(to_host!(addr) as usize) } as *mut stat;
+    let ptr = get_ptr(to_host!(addr)) as *mut stat;
     let ret = unsafe { libc::fstat(fd as i32, ptr) as u64 };
     return ret;
 }
@@ -153,8 +151,7 @@ pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
     get!(A0, tv_addr, m);
     get!(A1, tz_addr, m);
 
-    let ptr: *mut u8 = ptr::null_mut();
-    let tv = unsafe { ptr.add(tv_addr as usize) } as *mut timeval;
+    let tv = get_ptr(tv_addr) as *mut timeval;
     let mut tz: *mut timezone = ptr::null_mut();
     if tz_addr != 0 {
         let pp: *mut u8 = ptr::null_mut();
@@ -169,8 +166,7 @@ pub fn sys_gettimeofday(m: &mut Machine) -> u64 {
     get!(A0, tv_addr, m);
     get!(A1, tz_addr, m);
 
-    let ptr: *mut u8 = ptr::null_mut();
-    let tv = unsafe { ptr.add(tv_addr as usize) } as *mut timeval;
+    let tv = get_ptr(tv_addr) as *mut timeval;
     let mut tz: *mut timezone = ptr::null_mut();
     if tz_addr != 0 {
         let pp: *mut u8 = ptr::null_mut();
@@ -217,16 +213,14 @@ pub fn sys_openat(m: &mut Machine) -> u64 {
     get!(A0, dir_fd, m);
     get!(A1, name_ptr, m);
     get!(A2, flags, m);
-    let ptr: *mut char = ptr::null_mut();
-    let ptr = unsafe { ptr.add(to_host!(name_ptr) as usize) } as *const c_char;
+    let ptr = get_ptr(to_host!(name_ptr)) as *const c_char;
     return unsafe { openat(dir_fd as i32, ptr, flags as i32) } as u64;
 }
 
 pub fn sys_open(m: &mut Machine) -> u64 {
     get!(A0, name_ptr, m);
     get!(A1, flags, m);
-    let ptr: *mut char = ptr::null_mut();
-    let ptr = unsafe { ptr.add(to_host!(name_ptr) as usize) } as *const c_char;
+    let ptr = get_ptr(to_host!(name_ptr)) as *const c_char;
     let ret = unsafe { open(ptr, flags as i32) } as u64;
     return ret;
 }
@@ -244,9 +238,7 @@ pub fn sys_read(m: &mut Machine) -> u64 {
     get!(A1, buf_ptr, m);
     get!(A2, count, m);
 
-    let ptr: *mut char = ptr::null_mut();
-    let ptr = unsafe { ptr.add(to_host!(buf_ptr) as usize) } as *mut c_void;
-
+    let ptr = get_ptr(to_host!(buf_ptr)) as *mut c_void;
     return unsafe { read(fd as i32, ptr, count as usize) as u64 };
 }
 

@@ -2,8 +2,7 @@ use std::{
     fs::File,
     io::{Read, Seek, SeekFrom},
     mem::size_of,
-    os::{fd::FromRawFd, raw::c_void},
-    ptr, slice,
+    os::{fd::FromRawFd, raw::c_void}, slice,
 };
 
 use libc::{mmap, munmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
@@ -14,7 +13,7 @@ use crate::{
         PROT_WRITE, PT_LOAD,
     },
     fatal, max, round_down, round_up,
-    rvemu::Mmu,
+    rvemu::{get_ptr, Mmu},
     to_guest, to_host,
 };
 
@@ -40,15 +39,13 @@ pub fn flags_to_mmap_prot(flags: i32) -> i32 {
 
 pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {
     let page_size = page_size::get();
-    let offset = phdr.p_offset;
     let vaddr: u64 = to_host!(phdr.p_vaddr);
     let aligned_vaddr: u64 = round_down!(vaddr, page_size);
     let filesz = phdr.p_memsz + vaddr - aligned_vaddr;
     let memsz = phdr.p_memsz + vaddr - aligned_vaddr;
     let prot = flags_to_mmap_prot(phdr.p_flags as i32);
 
-    let ptr_align: *mut u8 = ptr::null_mut();
-    let ptr_align = unsafe { ptr_align.add(aligned_vaddr as usize) };
+    let ptr_align = get_ptr(aligned_vaddr);
     let ptr = unsafe {
         mmap(
             ptr_align as *mut c_void,
@@ -56,16 +53,14 @@ pub fn mmu_load_segment(mmu: &mut Mmu, phdr: Phdr, fd: i32) {
             prot,
             MAP_PRIVATE | MAP_FIXED,
             fd,
-            round_down!(offset, page_size) as i64,
+            round_down!(phdr.p_offset, page_size) as i64,
         )
     };
     assert_eq!(ptr as u64, aligned_vaddr);
 
     let remianing_bss = round_up!(memsz, page_size) - round_up!(filesz, page_size);
     if remianing_bss > 0 {
-        let ptr_align: *mut u8 = ptr::null_mut();
-        let ptr_align =
-            unsafe { ptr_align.add((aligned_vaddr + round_up!(filesz, page_size)) as usize) };
+        let ptr_align = get_ptr(aligned_vaddr + round_up!(filesz, page_size));
         let ptr = unsafe {
             mmap(
                 ptr_align as *mut c_void,
@@ -122,8 +117,7 @@ pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
     mmu.alloc += sz as u64;
     assert!(mmu.alloc >= mmu.base);
     if sz > 0 && mmu.alloc > to_guest!(mmu.host_alloc) {
-        let ptr: *mut u8 = ptr::null_mut();
-        let ptr = unsafe { ptr.add(mmu.host_alloc as usize) };
+        let ptr = get_ptr(mmu.host_alloc);
         if unsafe {
             mmap(
                 ptr as *mut c_void,
@@ -141,8 +135,7 @@ pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
         mmu.host_alloc += round_up!(sz, pz);
     } else if sz < 0 && round_up!(mmu.alloc, pz) < to_guest!(mmu.host_alloc) {
         let len = to_guest!(mmu.host_alloc) - round_up!(mmu.alloc, pz);
-        let ptr: *mut u8 = ptr::null_mut();
-        let ptr = unsafe { ptr.add(mmu.alloc as usize) };
+        let ptr = get_ptr(mmu.alloc);
         if unsafe { munmap(ptr as *mut c_void, len as usize) } == -1 {
             fatal!("munmap failed!")
         }

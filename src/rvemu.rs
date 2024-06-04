@@ -4,8 +4,7 @@ use crate::{
 };
 use std::ptr;
 
-#[derive(Debug)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum InsnType {
     InsnLb,
     InsnLh,
@@ -143,8 +142,7 @@ pub enum InsnType {
     NumInsns,
 }
 
-#[derive(Debug)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Insn {
     pub rd: i8,
     pub rs1: i8,
@@ -192,8 +190,7 @@ impl Mmu {
     }
 }
 
-#[derive(Debug)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ExitReason {
     None,
     DirectBranch,
@@ -209,8 +206,7 @@ enum Csr {
     Fcsr = 0x003,
 }
 
-#[derive(Debug)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct State {
     pub exit_reason: ExitReason,
     pub gp_regs: [u64; GpRegTypeT::NumGpRegS as usize],
@@ -254,9 +250,8 @@ macro_rules! fatal {
 }
 
 pub fn mmu_write(addr: u64, data: *const u8, len: usize) {
-    let n_ptr: *mut u8 = ptr::null_mut();
-    let n_ptr = unsafe { n_ptr.add(to_host!(addr) as usize) };
-    unsafe { n_ptr.copy_from(data, len) }
+    let ptr = get_ptr(to_host!(addr));
+    unsafe { ptr.copy_from(data, len) }
 }
 
 pub fn machine_get_gp_reg(m: Machine, reg: i32) -> u64 {
@@ -267,4 +262,10 @@ pub fn machine_get_gp_reg(m: Machine, reg: i32) -> u64 {
 pub fn machine_set_gp_reg(m: &mut Machine, reg: i32, data: u64) {
     assert!(reg >= 0 && reg <= GpRegTypeT::NumGpRegS as i32);
     m.state.gp_regs[reg as usize] = data;
+}
+
+#[inline]
+pub fn get_ptr(addr: u64) -> *mut u8 {
+    let ptr: *mut u8 = ptr::null_mut();
+    unsafe { ptr.add(addr as usize) }
 }
