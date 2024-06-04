@@ -404,14 +404,15 @@ pub fn insn_cstype_read2(data: u16) -> Insn {
 
 #[inline]
 pub fn insn_cjtype_read(data: u16) -> Insn {
-    let imm5: u32 = ((data as u32) >> 2) & 0x1;
-    let imm31: u32 = ((data as u32) >> 3) & 0x7;
-    let imm7: u32 = ((data as u32) >> 6) & 0x1;
-    let imm6: u32 = ((data as u32) >> 7) & 0x1;
-    let imm10: u32 = ((data as u32) >> 8) & 0x1;
-    let imm98: u32 = ((data as u32) >> 9) & 0x3;
-    let imm4: u32 = ((data as u32) >> 11) & 0x1;
-    let imm11: u32 = ((data as u32) >> 12) & 0x1;
+    let data = data as u32;
+    let imm5: u32 = (data >> 2) & 0x1;
+    let imm31: u32 = (data >> 3) & 0x7;
+    let imm7: u32 = (data >> 6) & 0x1;
+    let imm6: u32 = (data >> 7) & 0x1;
+    let imm10: u32 = (data >> 8) & 0x1;
+    let imm98: u32 = (data >> 9) & 0x3;
+    let imm4: u32 = (data >> 11) & 0x1;
+    let imm11: u32 = (data >> 12) & 0x1;
     let mut imm = ((imm5 << 5)
         | (imm31 << 1)
         | (imm7 << 7)
@@ -431,9 +432,10 @@ pub fn insn_cjtype_read(data: u16) -> Insn {
 
 #[inline]
 pub fn insn_cltype_read(data: u16) -> Insn {
-    let imm6: u32 = ((data as u32) >> 5) & 0x1;
-    let imm2: u32 = ((data as u32) >> 6) & 0x1;
-    let imm53: u32 = ((data as u32) >> 10) & 0x7;
+    let data = data as u32;
+    let imm6: u32 = (data >> 5) & 0x1;
+    let imm2: u32 = (data  >> 6) & 0x1;
+    let imm53: u32 = (data >> 10) & 0x7;
     let imm: i32 = ((imm6 << 6) | (imm2 << 2) | (imm53 << 3)) as i32;
 
     let mut insn = Insn::new();
@@ -490,10 +492,11 @@ pub fn insn_csstype_read2(data: u16) -> Insn {
 
 #[inline]
 pub fn insn_ciwtype_read(data: u16) -> Insn {
-    let imm3: u32 = ((data as u32) >> 5) & 0x1;
-    let imm2: u32 = ((data as u32) >> 6) & 0x1;
-    let imm96: u32 = ((data as u32) >> 7) & 0xf;
-    let imm54: u32 = ((data as u32) >> 11) & 0x3;
+    let data = data as u32;
+    let imm3: u32 = (data >> 5) & 0x1;
+    let imm2: u32 = (data >> 6) & 0x1;
+    let imm96: u32 = (data >> 7) & 0xf;
+    let imm54: u32 = (data  >> 11) & 0x3;
     let imm = ((imm3 << 3) | (imm2 << 2) | (imm96 << 6) | (imm54 << 4)) as i32;
 
     let mut insn = Insn::new();
@@ -599,12 +602,14 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             insn.rs1 = insn.rd;
                             if cfunct2high == 0x0 {
                                 insn.i_type = InsnType::InsnSrli;
+                                return;
                             } else if cfunct2high == 0x1 {
                                 insn.i_type = InsnType::InsnSrai;
+                                return;
                             } else {
                                 insn.i_type = InsnType::InsnAndi;
+                                return;
                             }
-                            return;
                         }
                         0x3 => {
                             let cfunct1 = cfunc_t1!(data);
@@ -618,21 +623,24 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                                     match cfunct2low {
                                         0x0 => {
                                             insn.i_type = InsnType::InsnSub;
+                                            return;
                                         }
                                         0x1 => {
                                             insn.i_type = InsnType::InsnXor;
+                                            return;
                                         }
                                         0x2 => {
                                             insn.i_type = InsnType::InsnOr;
+                                            return;
                                         }
                                         0x3 => {
                                             insn.i_type = InsnType::InsnAnd;
+                                            return;
                                         }
                                         _ => {
                                             unreachable!()
                                         }
                                     }
-                                    return;
                                 }
                                 0x1 => {
                                     let cfunct2low = cfunc_t2_low!(data);
@@ -642,15 +650,16 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                                     match cfunct2low {
                                         0x0 => {
                                             insn.i_type = InsnType::InsnSubw;
+                                            return;
                                         }
                                         0x1 => {
                                             insn.i_type = InsnType::InsnAddw;
+                                            return;
                                         }
                                         _ => {
                                             unreachable!()
                                         }
                                     }
-                                    return;
                                 }
                                 _ => {
                                     unreachable!()
@@ -672,10 +681,11 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                     insn.rs2 = GpRegTypeT::Zero as i8;
                     if copcode == 0x6 {
                         insn.i_type = InsnType::InsnBeq;
+                        return;
                     } else {
                         insn.i_type = InsnType::InsnBne;
+                        return;
                     }
-                    return;
                 }
                 _ => {
                     fatal!("unrecognized copcode");
@@ -734,15 +744,17 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             *insn = insn_crtype_read(data as u16);
                             if insn.rs1 == 0 && insn.rs2 == 0 {
                                 fatal!("unimplmented");
+                                return;
                             } else if insn.rs2 == 0 {
                                 insn.rd = GpRegTypeT::RA as i8;
                                 insn.i_type = InsnType::InsnJalr;
                                 insn.cont = true;
+                                return;
                             } else {
                                 insn.rd = insn.rs1;
                                 insn.i_type = InsnType::InsnAdd;
+                                return;
                             }
-                            return;
                         }
                         _ => {
                             unreachable!()
@@ -865,10 +877,10 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             let imm116 = imm_116!(data);
                             if imm116 == 0 {
                                 insn.i_type = InsnType::InsnSlli;
+                                return;
                             } else {
                                 unreachable!();
                             }
-                            return;
                         }
                         0x2 => {
                             insn.i_type = InsnType::InsnSlti;
@@ -888,13 +900,14 @@ pub fn insn_decode(insn: &mut Insn, data: u32) {
                             if imm116 == 0x0 {
                                 /* SRLI */
                                 insn.i_type = InsnType::InsnSrli;
+                                return;
                             } else if imm116 == 0x10 {
                                 /* SRAI */
                                 insn.i_type = InsnType::InsnSrai;
+                                return;
                             } else {
                                 unreachable!();
                             }
-                            return;
                         }
                         0x6 => {
                             insn.i_type = InsnType::InsnOri;
