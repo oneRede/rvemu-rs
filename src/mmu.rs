@@ -2,7 +2,8 @@ use std::{
     fs::File,
     io::{Read, Seek, SeekFrom},
     mem::size_of,
-    os::{fd::FromRawFd, raw::c_void}, slice,
+    os::{fd::FromRawFd, raw::c_void},
+    slice,
 };
 
 use libc::{mmap, munmap, MAP_ANONYMOUS, MAP_FIXED, MAP_PRIVATE};
@@ -118,7 +119,7 @@ pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
     assert!(mmu.alloc >= mmu.base);
     if sz > 0 && mmu.alloc > to_guest!(mmu.host_alloc) {
         let ptr = get_ptr(mmu.host_alloc);
-        if unsafe {
+        let ret = unsafe {
             mmap(
                 ptr as *mut c_void,
                 round_up!(sz, pz) as usize,
@@ -127,9 +128,8 @@ pub fn mmu_alloc(mmu: &mut Mmu, sz: i64) -> u64 {
                 -1i32,
                 0,
             )
-        }
-        .is_null()
-        {
+        };
+        if ret.is_null() {
             fatal!("mmap failed!")
         }
         mmu.host_alloc += round_up!(sz, pz);
